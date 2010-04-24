@@ -1,0 +1,12 @@
+<!ENTITY readalltweets "Read All Tweets">
+<!ENTITY general "general">
+<!ENTITY showRepliesToo "Show mentions too">
+<!ENTITY notifyDM "Notify Direct Messages">
+<!ENTITY applyThisAddOnToFollowingList "Apply this add-on to the following list">
+<!ENTITY writeListInThisFormUserList "Use the following list layout: username/listname">
+<!ENTITY setAllTweetsUntilNowAsAlreadyRead "Mark existing tweets as read">
+<!ENTITY changeColorOfNewTweets "Change color of new tweets">
+<!ENTITY numOfTweetsShowingAtOneTime "Number of tweets showing at one time:">
+<!ENTITY checkIntervalOfNewTweets "Check interval of new tweets:">
+<!ENTITY minutes "minutes">
+<!ENTITY disableThisAddonTemporarily "Temporarily disable this add-on">

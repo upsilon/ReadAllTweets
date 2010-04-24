@@ -1,0 +1,13 @@
+<!ENTITY readalltweets "Alle tweets lezen">
+<!ENTITY general "Algemeen">
+<!ENTITY showRepliesToo "Antwoorden ook weergeven">
+<!ENTITY notifyDM "DM berichten">
+<!ENTITY applyThisAddOnToFollowingList "Deze add-on toepassen op de volgende lijst">
+<!ENTITY writeListInThisFormUserList "Lijst in opmaak gebruikersnaam/lijstnaam">
+<!ENTITY setAllTweetsUntilNowAsAlreadyRead "Bestaande tweets als gelezen markeren">
+<!ENTITY changeColorOfNewTweets "Kleur van nieuwe tweets wijzigen">
+<!ENTITY numOfTweetsShowingAtOneTime "Aantal tegelijkertijd weergegeven tweets:">
+<!ENTITY checkNewTweetsPeriodically "Periodiek op nieuwe tweets controleren">
+<!ENTITY checkIntervalOfNewTweets "Controle-interval voor nieuwe tweets:">
+<!ENTITY minutes "minuten">
+<!ENTITY disableThisAddonTemporarily "Deze add-on tijdelijk uitschakelen">

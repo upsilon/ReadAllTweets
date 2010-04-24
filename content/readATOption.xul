@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://readalltweets/skin/readalltweets.css" type="text/css"?>
+
+<!DOCTYPE prefwindow SYSTEM "chrome://readalltweets/locale/readalltweets.dtd">
+
+<prefwindow id="readalltweets.pref"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	title="&readalltweets;">
+	<!--
+	onload="readalltweets.Init();"
+	ondialogaccept="return readalltweets.onDialogAccept()"
+	-->
+	<prefpane id="ratGeneral" label="&general;">
+		<preferences>
+			<preference id="extensions.readalltweets.general.showRepliesToo" name="extensions.readalltweets.general.showRepliesToo" type="bool"/>
+			<preference id="extensions.readalltweets.general.notifyDM" name="extensions.readalltweets.general.notifyDM" type="bool"/>
+			<preference id="extensions.readalltweets.general.changeColorOfNewTweets" name="extensions.readalltweets.general.changeColorOfNewTweets" type="bool"/>
+			<preference id="extensions.readalltweets.general.numOfTweetsShowingAtOneTime" name="extensions.readalltweets.general.numOfTweetsShowingAtOneTime" type="int"/>
+			<preference id="extensions.readalltweets.general.lists" name="extensions.readalltweets.general.lists" type="string"/>
+			<preference id="extensions.readalltweets.general.checkIntervalOfNewTweets" name="extensions.readalltweets.general.checkIntervalOfNewTweets" type="int"/>
+			<preference id="extensions.readalltweets.general.disableThisAddonTemporarily" name="extensions.readalltweets.general.disableThisAddonTemporarily" type="bool"/>
+		</preferences>
+
+		<checkbox label="&showRepliesToo;" preference="extensions.readalltweets.general.showRepliesToo" id="prefs.general.showRepliesToo"/>
+		<checkbox label="&notifyDM;" preference="extensions.readalltweets.general.notifyDM" id="prefs.general.notifyDM"/>
+		<checkbox label="&changeColorOfNewTweets;" preference="extensions.readalltweets.general.changeColorOfNewTweets" id="prefs.general.changeColorOfNewTweets"/>
+		<hbox align="center">
+			<label value="&checkIntervalOfNewTweets;"/>
+			<textbox width="30" preference="extensions.readalltweets.general.checkIntervalOfNewTweets"/>
+			<label value="&minutes;"/>
+		</hbox>
+		<hbox align="center">
+			<label value="&numOfTweetsShowingAtOneTime;"/>
+			<textbox width="30" preference="extensions.readalltweets.general.numOfTweetsShowingAtOneTime"/>
+		</hbox>
+		<separator class="thin"/>
+		<label value="&applyThisAddOnToFollowingList;"/>
+		<textbox width="100" preference="extensions.readalltweets.general.lists"/>
+		<label value="&writeListInThisFormUserList;"/>
+		<separator class="thin"/>
+		<hbox pack="center">
+			<button label="&setAllTweetsUntilNowAsAlreadyRead;" oncommand="readATOption.setAsAlreadyRead()"/>
+		</hbox>
+		<separator class="thin"/>
+		<checkbox label="&disableThisAddonTemporarily;" preference="extensions.readalltweets.general.disableThisAddonTemporarily" id="prefs.general.disableThisAddonTemporarily"/>
+	</prefpane>
+
+	<script type="application/x-javascript" src="readATOption.js"/>
+
+	<stringbundleset id="readalltweets-pref-sbs">
+		<stringbundle id="readalltweets-pref-bundle" src="chrome://readalltweets/locale/strings.properties"/>
+	</stringbundleset>
+
+</prefwindow>

@@ -1,0 +1,12 @@
+<!ENTITY readalltweets "Read All Tweets">
+<!ENTITY general "一般">
+<!ENTITY showRepliesToo "返信も表示">
+<!ENTITY notifyDM "DMを通知">
+<!ENTITY applyThisAddOnToFollowingList "このアドオンを以下のリストに適用">
+<!ENTITY writeListInThisFormUserList "ユーザー名/リスト名の形で書いてください">
+<!ENTITY setAllTweetsUntilNowAsAlreadyRead "現在までの全ての発言を既読として設定">
+<!ENTITY changeColorOfNewTweets "新しい発言の色を変える">
+<!ENTITY numOfTweetsShowingAtOneTime "一度に表示する発言の数：">
+<!ENTITY checkIntervalOfNewTweets "新しい発言のチェック間隔：">
+<!ENTITY minutes "分">
+<!ENTITY disableThisAddonTemporarily "このアドオンを一時的に無効化">
