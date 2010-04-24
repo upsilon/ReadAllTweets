@@ -1,14 +1,14 @@
 content readalltweets jar:chrome/readalltweets.jar!/content/
 locale	readalltweets	en-US		jar:chrome/readalltweets.jar!/locale/en-US/
 locale	readalltweets	ja-JP		jar:chrome/readalltweets.jar!/locale/ja-JP/
-locale	readalltweets	de-DE		jar:chrome/readalltweets.jar!/locale/de-DE/
+locale	readalltweets	de			jar:chrome/readalltweets.jar!/locale/de/
 locale	readalltweets	es-ES		jar:chrome/readalltweets.jar!/locale/es-ES/
 locale	readalltweets	fr			jar:chrome/readalltweets.jar!/locale/fr/
 locale	readalltweets	it			jar:chrome/readalltweets.jar!/locale/it/
 locale	readalltweets	nl			jar:chrome/readalltweets.jar!/locale/nl/
 locale	readalltweets	pt-BR		jar:chrome/readalltweets.jar!/locale/pt-BR/
 locale	readalltweets	tr-TR		jar:chrome/readalltweets.jar!/locale/tr-TR/
-locale	readalltweets	vi-VN		jar:chrome/readalltweets.jar!/locale/vi-VN/
+locale	readalltweets	vi			jar:chrome/readalltweets.jar!/locale/vi/
 locale	readalltweets	zh-CN		jar:chrome/readalltweets.jar!/locale/zh-CN/
 skin	readalltweets	classic/1.0	jar:chrome/readalltweets.jar!/skin/
 

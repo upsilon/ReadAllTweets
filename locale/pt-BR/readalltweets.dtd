@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Marcar as mensagens existentes com lidas">
 <!ENTITY changeColorOfNewTweets "Mudar a cor das novas mensagens">
 <!ENTITY numOfTweetsShowingAtOneTime "Número de mensagens a serem exibidas ao mesmo tempo">
-<!ENTITY checkNewTweetsPeriodically "Verificar periodicamente por novas mensagens">
 <!ENTITY checkIntervalOfNewTweets "Intervalo de verificação para novas mensagens">
 <!ENTITY minutes "minutos">
 <!ENTITY disableThisAddonTemporarily "Desabilitar temporariamente este complemento">

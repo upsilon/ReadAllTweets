@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Şimdiye kadarki tweetleri okunmuş say">
 <!ENTITY changeColorOfNewTweets "Yeni tweetlerin rengini değiştir">
 <!ENTITY numOfTweetsShowingAtOneTime "Bir seferde gösterilen tweetler:">
-<!ENTITY checkNewTweetsPeriodically "Yeni tweetleri periyodik olarak kontrol et">
 <!ENTITY checkIntervalOfNewTweets "Kontrol aralığı:">
 <!ENTITY minutes "dakika">
 <!ENTITY disableThisAddonTemporarily "Bu add-on'u geçiçi olarak devre dışı bırak">

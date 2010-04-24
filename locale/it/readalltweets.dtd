@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Segna i messaggi attuali come letti">
 <!ENTITY changeColorOfNewTweets "Evidenzia i nuovi messaggi con diverso colore">
 <!ENTITY numOfTweetsShowingAtOneTime "Numero di messaggi da visualizzare per gruppo:">
-<!ENTITY checkNewTweetsPeriodically "Controlla periodicamente i nuovi messaggi">
 <!ENTITY checkIntervalOfNewTweets "Numero di minuti prima del controllo successivo:">
 <!ENTITY minutes " ">
 <!ENTITY disableThisAddonTemporarily "Disattiva l'estensione">

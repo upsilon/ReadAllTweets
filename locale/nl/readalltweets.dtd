@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Bestaande tweets als gelezen markeren">
 <!ENTITY changeColorOfNewTweets "Kleur van nieuwe tweets wijzigen">
 <!ENTITY numOfTweetsShowingAtOneTime "Aantal tegelijkertijd weergegeven tweets:">
-<!ENTITY checkNewTweetsPeriodically "Periodiek op nieuwe tweets controleren">
 <!ENTITY checkIntervalOfNewTweets "Controle-interval voor nieuwe tweets:">
 <!ENTITY minutes "minuten">
 <!ENTITY disableThisAddonTemporarily "Deze add-on tijdelijk uitschakelen">

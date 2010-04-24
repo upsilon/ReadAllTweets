@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Marcar tweets como leídos">
 <!ENTITY changeColorOfNewTweets "Cambiar el color de los nuevos tweets">
 <!ENTITY numOfTweetsShowingAtOneTime "Número de tweets mostrados a la vez">
-<!ENTITY checkNewTweetsPeriodically "Comprobar periódicamente nuevos tweets">
 <!ENTITY checkIntervalOfNewTweets "Comprobar nuevos tweets cada:">
 <!ENTITY minutes "minutos">
 <!ENTITY disableThisAddonTemporarily "Desactivar temporalmente este complemento">

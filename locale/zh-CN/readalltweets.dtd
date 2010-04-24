@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "标记现有的 tweets 消息为已读">
 <!ENTITY changeColorOfNewTweets "改变新 tweets 消息的颜色">
 <!ENTITY numOfTweetsShowingAtOneTime "显示一段时间的 tweets 消息数目：">
-<!ENTITY checkNewTweetsPeriodically "定时检查新的 tweets 消息">
 <!ENTITY checkIntervalOfNewTweets "新 tweets 消息检查间隔：">
 <!ENTITY minutes "分">
 <!ENTITY disableThisAddonTemporarily "暂时禁用此扩展">

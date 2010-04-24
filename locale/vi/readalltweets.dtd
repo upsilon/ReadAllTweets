@@ -7,7 +7,6 @@
 <!ENTITY setAllTweetsUntilNowAsAlreadyRead "Đánh dấu các tweet đang tồn tại thành trạng thái &quot;Đã đọc&quot;">
 <!ENTITY changeColorOfNewTweets "Đổi màu của các tweet mới">
 <!ENTITY numOfTweetsShowingAtOneTime "Số lượng tweet hiển thị trong một lần:">
-<!ENTITY checkNewTweetsPeriodically "Chu kỳ kiểm tra tweet mới">
 <!ENTITY checkIntervalOfNewTweets "Kiểm tra khoảng thời gian của các tweet mới">
 <!ENTITY minutes "phút">
 <!ENTITY disableThisAddonTemporarily "Tạm thời tắt add-on này">

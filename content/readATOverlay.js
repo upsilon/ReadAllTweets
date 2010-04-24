@@ -203,8 +203,8 @@ start : function(doc){
 	if(readAT.targetBrowser){
 		var preDoc = readAT.targetBrowser.contentDocument;
 		//このエレメントが存在するかどうかで既に実行されているかどうか判断
-	//		if(currentBrowser.currentURI.host=="twitter.com" && currentBrowser.contentDocument.getElementById("RAT_CSS")){
-		if(preDoc && (preDoc.getElementById("RAT_separator") || preDoc.getElementById("RAT_processing"))){
+		if(readAT.targetBrowser.currentURI.host=="twitter.com" && 
+		preDoc && (preDoc.getElementById("RAT_separator") || preDoc.getElementById("RAT_processing"))){
 			var alreadyDiv = doc.createElement("div");
 			alreadyDiv.setAttribute("class", "minor-notification");
 			alreadyDiv.style.display ="block";
@@ -509,15 +509,6 @@ getLastStatus : function(){
     	var list = "/all";
     }
     if(!lastStatusList[user] || !lastStatusList[user][list]){
- /*   	lastStatusList[readAT.user] = {};
-    	lastStatusList[readAT.user]["/all"]=-1;
-    	
-		var str = Components.classes["@mozilla.org/supports-string;1"]
-		      .createInstance(Components.interfaces.nsISupportsString);
-		str.data = this.nativeJSON.encode(lastStatusList);
-		this.Branch.setComplexValue("lastStatus", 
-		      Components.interfaces.nsISupportsString, str);
-*/		
 		return 0;
     }
     
@@ -587,6 +578,7 @@ getLastDM : function(){
     return lastDM;
 },
 setLastDM : function(lastDM){
+	if(!lastDM) return;
 	var lastDMList = this.nativeJSON.decode(this.Branch.getComplexValue("lastDM",
       Components.interfaces.nsISupportsString).data);
       
@@ -837,14 +829,21 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 	     if(req.status == 200){
 			//整形式になってないとエラーが出る（AT&Tなど＆が含まれている語が流行のトピックに入ってる場合）可能性があるので、responseXML ではなく responseText でいく
 			var res = req.responseText.replace(/[\n\r]/g, " ");
-			//Application.console.log(readAT.getTime()+"\n"+res)
-/*			if(!readAT.user){
-				var re = new RegExp(" id=['"+'"]me_name["'+"'][^>]*>(.*?)</");
-				res.match(re);
-				readAT.user = RegExp.$1;
-				
+			
+			//body の id から、適切なページを取得できてるかを検証
+			var re = new RegExp('<body [^>]* id="([^"]*)');
+			res.match(re);
+			if(uri.match(/twitter.com\/([^?]*)/)==RegExp.$1){
+		     	if(onceFailed){
+			     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+		     	}
+		     	else{
+		     		setTimeout(function(){
+				     	readAT.getStatuses(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCount, true);
+		     		}, 10000);				
+		     	}
 			}
-*/
+			
 			var tmpOl = readAT.getOl(res, "timeline");
 			var tmpLis = readAT.getLis(tmpOl);
 			
@@ -862,7 +861,7 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 //			Application.console.log(readAT.newLis[readAT.newTweetsCount].innerHTML)
 
 			while(true){
-				//alert(readAT.newTweetsCount + " \n" + readAT.newLis[readAT.newTweetsCount].innerHTML)
+//				alert(readAT.newTweetsCount + " \n" + readAT.newLis[readAT.newTweetsCount].innerHTML)
 				var status = newLis[newTweetsCount].getAttribute("id").replace("status_", "")-0;
 				//status が適切に取得できなかった場合
 //				alert(newLis[newTweetsCount].innerHTML)
@@ -1020,6 +1019,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 
 		var time = readAT.getTime();
 		if(newTweetsCount){
+//		alert(newTweetsCount+" "+readAT.newLastStatus+"\n"+newLis[0].innerHTML)
 			var cls = "bulletin alert";
 			var msg = time+'<br/>'+bundle.getString("notAllOfNewTweetsCouldBeGetted");
 			var errorLi2 = readAT.createLi(cls, msg);
