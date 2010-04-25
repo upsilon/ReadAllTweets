@@ -12,6 +12,7 @@ user : null,
 targetBrowser : null,
 onceCanceled : false,
 onceFailed : false,
+baseUrl: null,
 nativeJSON : Components.classes["@mozilla.org/dom/json;1"]
                  .createInstance(Components.interfaces.nsIJSON),
 Branch: Components.classes["@mozilla.org/preferences-service;1"]
@@ -72,6 +73,8 @@ onPageLoad : function(aEvent){
 		readAT.targetBrowser=null; 
 	}
     if(!uri.match(readAT.genUrlRegex('\/')))	return;
+
+    readAT.baseUrl = doc.location.protocol + '//' + doc.location.host + '/';
 
 /*    
  	//うまくいかない
@@ -849,7 +852,7 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 			var tmpLis = readAT.getLis(tmpOl);
 			
 			if(!tmpLis.length){
-				var failed = (uri!="http://twitter.com/replies");
+				var failed = (uri!=readAT.getUrlFor("replies"));
 				readAT.getStatusesFinish(failed, uri, returnFunc, newLis, newTweetsCount);
 				return;
 			}
@@ -961,8 +964,8 @@ showNewStauses : function(){
 	}
 	readAT.nowFetchingNewStatuses = true;
 	
-	if(readAT.listname) var uri = "http://twitter.com/"+readAT.listname;
-	else var uri = "http://twitter.com/home";
+	if(readAT.listname) var uri = readAT.getUrlFor(readAT.listname);
+	else var uri = readAT.getUrlFor("home");
 	
 	readAT.lastStatus = readAT.newLastStatus;
 	if(readAT.nowUpdateChecking) return;
@@ -1079,7 +1082,7 @@ showReplies : function(){
 	}
 	
 	var lastReply = readAT.newLastReply;
-	if(lastReply>-1) readAT.getStatusesInit("http://twitter.com/replies", "more", lastReply, readAT.showReplies2);
+	if(lastReply>-1) readAT.getStatusesInit(readAT.getUrlFor("replies"), "more", lastReply, readAT.showReplies2);
 	else readAT.checkDM();
 },
 showReplies2 : function(failed, pageCount, newLis, newTweetsCount){	
@@ -1149,7 +1152,7 @@ initLastDM : function(){
 	}
 
 	var req = new XMLHttpRequest();
-	req.open('GET', "http://twitter.com/inbox", false); 
+	req.open('GET', readAT.getUrlFor("inbox"), false); 
 	req.overrideMimeType('text/xml');
 	req.send(null);
 	var res = req.responseText.replace(/[\n\r]/g, " ");
@@ -1183,7 +1186,7 @@ checkDM : function(){
 	}
 */	
 	var req = new XMLHttpRequest();
-	req.open('GET', "http://twitter.com/inbox", true);
+	req.open('GET', readAT.getUrlFor("inbox"), true);
 	req.overrideMimeType('text/xml');
 	req.onreadystatechange = function (aEvt) {
 	  if (req.readyState == 4) {
@@ -1301,6 +1304,9 @@ getOuterHTML : function(aElmArrow){
 	tub.appendChild(r.cloneContents());
 	
 	return tub.innerHTML;
+},
+getUrlFor : function (path) {
+  return readAT.baseUrl + path;
 },
 genUrlRegex : function (path) {
   return new RegExp('^https?:\/\/twitter\.com' + path);
