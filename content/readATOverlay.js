@@ -71,21 +71,20 @@ onPageLoad : function(aEvent){
 	if(readAT.targetBrowser && readAT.targetBrowser.contentDocument==doc){
 		readAT.targetBrowser=null; 
 	}
-    if(!uri.match(/^https?:\/\/twitter.com\//))	return;
+    if(!uri.match(readAT.genUrlRegex('\/')))	return;
 
 /*    
  	//うまくいかない
 	var home_tab = doc.getElementById("home_tab");
 	home_tab.addEventListener("click", function(){gBrowser.getBrowserForDocument(doc).loadURI(home_tab.firstChild.href)} , false);
 */
-	if(uri.match(/^https?:\/\/twitter.com\/$/) || uri.match(/^https?:\/\/twitter.com\/home$/) || uri.match(/^https?:\/\/twitter.com\/#/)){
+	if(uri.match(readAT.genUrlRegex('\/($|home$|#)'))){
 		readAT.setSettingsLink(doc);
 	}
 
     doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
     
-    if(doc.body.id=="list" && (uri=="http://twitter.com/" || uri=="https://twitter.com/" || 
-     uri=="http://twitter.com/#home" || uri=="https://twitter.com/#home" )){
+    if(doc.body.id=="list" && uri.match(readAT.genUrlRegex('\/(#home)?$'))){
      	setTimeout(function(){
      		readAT.checkLoadFinished(0, doc);
      	}, 500);
@@ -139,17 +138,17 @@ checkListName : function(uri, bodyid, doc){
 isTargetList : function(uri){
 	readAT.listname = readAT.Branch.getCharPref("general.lists");
      
-    if(uri.match(/https?:\/\/twitter.com\/\??[^#\/]*(#home)?$/)){
+    if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*(#home)?$"))){
      	return readAT.listname=="";
      }
 	else{
-		if(uri.match(/https?:\/\/twitter.com\/\??[^#\/]*#\/?list\/(.*)/)){
+		if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*#\/?list\/(.*)"))){
 			return readAT.listname==RegExp.$1;
 		}
-		else if(uri.match(/https?:\/\/twitter.com\/([^\/]*)\/lists\/([^\/]*)/)){
+		else if(uri.match(readAT.genUrlRegex("\/([^\/]*)\/lists\/([^\/]*)"))){
 			return readAT.listname==RegExp.$1 +"/"+ RegExp.$2;
 		}
-		else if(uri.match(/https?:\/\/twitter.com\/(.*)/)){
+		else if(uri.match(readAT.genUrlRegex("\/(.*)"))){
 			return readAT.listname==RegExp.$1;
 		}
 		else return false;
@@ -1302,6 +1301,9 @@ getOuterHTML : function(aElmArrow){
 	tub.appendChild(r.cloneContents());
 	
 	return tub.innerHTML;
+},
+genUrlRegex : function (path) {
+  return new RegExp('^https?:\/\/twitter\.com' + path);
 }
 };
 window.addEventListener("load", function() { readAT.init(); }, false);
