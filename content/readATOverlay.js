@@ -68,6 +68,7 @@ onPageLoad : function(aEvent){
     if(!doc) return;
 
     var uri = doc.location.href;
+//    Application.console.log(uri)
 	if(readAT.targetBrowser && readAT.targetBrowser.contentDocument==doc){
 		readAT.targetBrowser=null; 
 	}
@@ -82,13 +83,12 @@ onPageLoad : function(aEvent){
 		readAT.setSettingsLink(doc);
 	}
 
-    doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
-    
     if(doc.body.id=="list" && (uri=="http://twitter.com/" || uri=="https://twitter.com/" || 
      uri=="http://twitter.com/#home" || uri=="https://twitter.com/#home" )){
      	setTimeout(function(){
      		readAT.checkLoadFinished(0, doc);
      	}, 500);
+     	return;
      }
      else readAT.checkListName(uri, doc.body.id, doc);
 },
@@ -198,12 +198,15 @@ start : function(doc){
 	if(readAT.Branch.getBoolPref("general.disableThisAddonTemporarily")) return;
 
 	var bundle = document.getElementById("readalltweets-bundle");
+
+//	Application.console.log(doc.location.href)
 	
 	//既にTwitterが開かれてるかどうか
+	var thisBrowser = gBrowser.getBrowserForDocument(doc);
 	if(readAT.targetBrowser){
 		var preDoc = readAT.targetBrowser.contentDocument;
 		//このエレメントが存在するかどうかで既に実行されているかどうか判断
-		if(readAT.targetBrowser.currentURI && readAT.targetBrowser.currentURI.host=="twitter.com" && 
+		if(readAT.targetBrowser.currentURI && readAT.targetBrowser.currentURI.host=="twitter.com" &&
 		preDoc && (preDoc.getElementById("RAT_separator") || preDoc.getElementById("RAT_processing"))){
 			var alreadyDiv = doc.createElement("div");
 			alreadyDiv.setAttribute("class", "minor-notification");
@@ -214,7 +217,10 @@ start : function(doc){
 			return;
 		}
 	}
-	readAT.ol = doc.getElementById("timeline");
+    readAT.targetBrowser = thisBrowser;
+
+    doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
+    readAT.ol = doc.getElementById("timeline");
 
 	var processingDiv = doc.createElement("div");
 	processingDiv.id = "RAT_processing"
@@ -234,7 +240,6 @@ start : function(doc){
 	readAT.separatorHidden = false;    
     readAT.onceFailed = false;
     
-    readAT.targetBrowser = gBrowser.getBrowserForDocument(doc);
 	
 	readAT.numOfTweetsShowingAtOneTime = readAT.Branch.getIntPref("general.numOfTweetsShowingAtOneTime");
 	readAT.twitterUpdateIsWorking = false;
@@ -250,7 +255,6 @@ start : function(doc){
 	if(ptUpdateSource) ptUpdateSource.value = 'Read All Tweets(Reverse timeline)';
 
 	readAT.lis = readAT.getLis(readAT.ol);
-		
 	for(var i=0; i<readAT.lis.length; i++){
 		var a = readAT.lis[i].getElementsByTagName("a");
 		for(var j=0; j<a.length; j++){
@@ -316,7 +320,14 @@ start : function(doc){
 				readAT.moreParent.removeChild(readAT.more);
 				
 				readAT.existingNewTweetsCount2 = newTweetsCount;
-				readAT.getStatusesInit(uri, "more", readAT.lastStatus, "home", readAT.start2);
+				if(readAT.listname){
+					var pageKind = "list_show";
+				}
+				else{
+					var pageKind = "home";
+				}
+
+				readAT.getStatusesInit(uri, "more", readAT.lastStatus, pageKind, readAT.start2);
 
 				return;
 			}
@@ -961,13 +972,18 @@ showNewStauses : function(){
 	}
 	readAT.nowFetchingNewStatuses = true;
 	
-	if(readAT.listname) var uri = "http://twitter.com/"+readAT.listname;
-	else var uri = "http://twitter.com/home";
-	
+	if(readAT.listname){
+		var uri = "http://twitter.com/"+readAT.listname;
+		var pageKind = "list_show";
+	}
+	else{
+		var uri = "http://twitter.com/home";
+		var pageKind = "home";
+	}
 	readAT.lastStatus = readAT.newLastStatus;
 	if(readAT.nowUpdateChecking) return;
 	readAT.nowRATUpdateChecking = true;
-	readAT.getStatusesInit(uri, "more", readAT.lastStatus, "home", readAT.showNewStauses2);
+	readAT.getStatusesInit(uri, "more", readAT.lastStatus, pageKind, readAT.showNewStauses2);
 },
 showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.lastUpdateTime = readAT.getNow();
