@@ -1199,6 +1199,13 @@ checkDM : function(){
 			readAT.lastDM = readAT.getLastDM();
 			if(readAT.lastDM==-1) readAT.initLastDM();
 		
+			var re = new RegExp('<body [^>]* id="([^"]*)');
+			res.match(re);
+			var bodyId = RegExp.$1;
+			if(bodyId!="inbox"){
+				readAT.checkDMFinish();	
+			}
+
 			var tmpOl = readAT.getOl(res, "timeline");
 			var tmpLis = readAT.getLis(tmpOl);
 		
