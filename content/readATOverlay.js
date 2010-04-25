@@ -203,7 +203,7 @@ start : function(doc){
 	if(readAT.targetBrowser){
 		var preDoc = readAT.targetBrowser.contentDocument;
 		//このエレメントが存在するかどうかで既に実行されているかどうか判断
-		if(readAT.targetBrowser.currentURI.host=="twitter.com" && 
+		if(readAT.targetBrowser.currentURI && readAT.targetBrowser.currentURI.host=="twitter.com" && 
 		preDoc && (preDoc.getElementById("RAT_separator") || preDoc.getElementById("RAT_processing"))){
 			var alreadyDiv = doc.createElement("div");
 			alreadyDiv.setAttribute("class", "minor-notification");
@@ -330,7 +330,6 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	newTweetsCount += readAT.existingNewTweetsCount2;
 	
 	var doc = readAT.targetBrowser.contentDocument;
-
 	var bundle = document.getElementById("readalltweets-bundle");
 
 	if(failed){
@@ -362,10 +361,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 			readAT.ol.insertBefore(readAT.lis[j], readAT.lis[j-1]);
 		}
 	}	
-	
-	var processingDiv = doc.getElementById("RAT_processing");
-	processingDiv.parentNode.removeChild(processingDiv);
-		
+			
 	var cls = "bulletin warning";
 	var msg = bundle.getString("belowAreAlreadyRead")+
 	' <a href="javascript:void(0);" onclick="javascript:window.scroll(0, 0); return false;" style="display:block; float:right;">'+
@@ -428,6 +424,9 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	return;
 },
 finish : function(doc){
+	var processingDiv = doc.getElementById("RAT_processing");
+	processingDiv.parentNode.removeChild(processingDiv);
+
 	readAT.setHTMLChange(doc);
 
 	readAT.lastUpdateTime = readAT.getNow();
@@ -687,7 +686,7 @@ showUnreadCount : function(){
 		doc.addEventListener('mouseover', readAT.resetUnreadCount, false);
 		gBrowser.tabContainer.addEventListener("TabSelect", readAT.tabSelected, false);
 
-		if(readAT.alreadyReadLi){
+		if(readAT.alreadyReadLi && !readAT.includeClass(readAT.alreadyReadLi, "last-on-refresh")){
 			readAT.addClass(readAT.alreadyReadLi, "last-on-refresh");
 		}
 	}
@@ -833,7 +832,10 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 			//body の id から、適切なページを取得できてるかを検証
 			var re = new RegExp('<body [^>]* id="([^"]*)');
 			res.match(re);
-			if(uri.match(/twitter.com\/([^?]*)/)==RegExp.$1){
+			var bodyId = RegExp.$1;
+			uri.match(/twitter.com\/([^?]*)/);
+			var pageKind = RegExp.$1;
+			if(pageKind!=bodyId){
 		     	if(onceFailed){
 			     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
 		     	}
@@ -1019,7 +1021,12 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 
 		var time = readAT.getTime();
 		if(newTweetsCount){
-//		alert(newTweetsCount+" "+readAT.newLastStatus+"\n"+newLis[0].innerHTML)
+/*
+			var div = doc.createElement("div");
+			div.appendChild(newLis[0])
+			alert(newTweetsCount+" "+readAT.newLastStatus+"\n"+div.innerHTML)
+			Application.console.log(newTweetsCount+" "+readAT.newLastStatus+"\n"+div.innerHTML)
+*/
 			var cls = "bulletin alert";
 			var msg = time+'<br/>'+bundle.getString("notAllOfNewTweetsCouldBeGetted");
 			var errorLi2 = readAT.createLi(cls, msg);
@@ -1236,9 +1243,6 @@ checkDM : function(){
 },
 checkDMFinish : function(){
 	readAT.showUnreadCount();
-	if(readAT.alreadyReadLi && readAT.unreadCount){
-		readAT.addClass(readAT.alreadyReadLi, "last-on-refresh");
-	}
 	readAT.autoMovingToUnreadTweets();
 },
 autoMovingToUnreadTweets : function(){
@@ -1252,7 +1256,10 @@ autoMovingToUnreadTweets : function(){
 
 //	var doc = readAT.targetBrowser.contentDocument;
 	var win = readAT.targetBrowser.contentWindow;
-	var top = readAT.getOffsetTopBody(readAT.alreadyReadLi.nextSibling);
+	var unreadTweet = readAT.alreadyReadLi.nextSibling;
+	var top = readAT.getOffsetTopBody(unreadTweet);
+	//var bottom = top + unreadTweet.height;
+	if(top < win.pageYOffset) return;
 	if(top > win.pageYOffset && top < win.pageYOffset + win.innerHeight) return;	
 
 	readAT.moveToUnreadTweets();
