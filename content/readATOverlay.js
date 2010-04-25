@@ -316,7 +316,7 @@ start : function(doc){
 				readAT.moreParent.removeChild(readAT.more);
 				
 				readAT.existingNewTweetsCount2 = newTweetsCount;
-				readAT.getStatusesInit(uri, "more", readAT.lastStatus, readAT.start2);
+				readAT.getStatusesInit(uri, "more", readAT.lastStatus, "home", readAT.start2);
 
 				return;
 			}
@@ -807,10 +807,10 @@ getOffsetTopBody : function(elem){
 	}
 	return top;
 },
-getStatusesInit : function(uri, moreId, lastStatus, returnFunc){
-	readAT.getStatuses(uri, moreId, lastStatus, returnFunc, new Array(), 0, false);	
+getStatusesInit : function(uri, moreId, lastStatus, pageKind, returnFunc){
+	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, new Array(), 0, false);	
 },
-getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCount, onceFailed){
+getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, onceFailed){
 	var doc = readAT.targetBrowser.contentDocument;
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
@@ -833,17 +833,16 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 			var re = new RegExp('<body [^>]* id="([^"]*)');
 			res.match(re);
 			var bodyId = RegExp.$1;
-			uri.match(/twitter.com\/([^?]*)/);
-			var pageKind = RegExp.$1;
 			if(pageKind!=bodyId){
 		     	if(onceFailed){
 			     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
 		     	}
 		     	else{
 		     		setTimeout(function(){
-				     	readAT.getStatuses(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCount, true);
+				     	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
 		     		}, 10000);				
 		     	}
+		     	return;
 			}
 			
 			var tmpOl = readAT.getOl(res, "timeline");
@@ -890,7 +889,7 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 		
 						var nextUri = span.firstChild.href;
 						
-						readAT.getStatuses(nextUri, moreId, lastStatus, returnFunc, newLis, newTweetsCount, false);
+						readAT.getStatuses(nextUri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, false);
 						return;
 					}
 				}
@@ -906,7 +905,7 @@ getStatuses : function(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCou
 	     	}
 	     	else{
 	     		setTimeout(function(){
-			     	readAT.getStatuses(uri, moreId, lastStatus, returnFunc, newLis, newTweetsCount, true);
+			     	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
 	     		}, 10000);
 	     	}
 	     	return;
@@ -968,7 +967,7 @@ showNewStauses : function(){
 	readAT.lastStatus = readAT.newLastStatus;
 	if(readAT.nowUpdateChecking) return;
 	readAT.nowRATUpdateChecking = true;
-	readAT.getStatusesInit(uri, "more", readAT.lastStatus, readAT.showNewStauses2);
+	readAT.getStatusesInit(uri, "more", readAT.lastStatus, "home", readAT.showNewStauses2);
 },
 showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.lastUpdateTime = readAT.getNow();
@@ -1080,7 +1079,7 @@ showReplies : function(){
 	}
 	
 	var lastReply = readAT.newLastReply;
-	if(lastReply>-1) readAT.getStatusesInit("http://twitter.com/replies", "more", lastReply, readAT.showReplies2);
+	if(lastReply>-1) readAT.getStatusesInit("http://twitter.com/replies", "more", lastReply, "replies", readAT.showReplies2);
 	else readAT.checkDM();
 },
 showReplies2 : function(failed, pageCount, newLis, newTweetsCount){	
@@ -1254,6 +1253,8 @@ checkDMFinish : function(){
 },
 autoMovingToUnreadTweets : function(){
 	if(!readAT.unreadCount || gBrowser.selectedBrowser==readAT.targetBrowser) return;
+	var unreadTweet = readAT.alreadyReadLi.nextSibling;
+	if(!unreadTweet) return;
 	
 	var focusNode = gBrowser.selectedBrowser.contentDocument.activeElement;
 	if(focusNode.tagName=="TEXTAREA" || 
@@ -1263,7 +1264,6 @@ autoMovingToUnreadTweets : function(){
 
 //	var doc = readAT.targetBrowser.contentDocument;
 	var win = readAT.targetBrowser.contentWindow;
-	var unreadTweet = readAT.alreadyReadLi.nextSibling;
 	var top = readAT.getOffsetTopBody(unreadTweet);
 	//var bottom = top + unreadTweet.height;
 	if(top < win.pageYOffset) return;
