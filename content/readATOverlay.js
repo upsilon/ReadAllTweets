@@ -199,13 +199,7 @@ setSettingsLink : function(doc){
 getShortAddonName : function(bundle){
 	return bundle.getString("extensions.readalltweets@masahal.info.name").replace(/\s?\(.*\)/, "");
 },
-start : function(doc){
-	if(readAT.Branch.getBoolPref("general.disableThisAddonTemporarily")) return;
-
-	var bundle = document.getElementById("readalltweets-bundle");
-
-//	Application.console.log(doc.location.href)
-	
+checkAlreadyOpened : function (doc) {
 	//既にTwitterが開かれてるかどうか
 	var thisBrowser = gBrowser.getBrowserForDocument(doc);
 	if(readAT.targetBrowser){
@@ -213,14 +207,29 @@ start : function(doc){
 		//このエレメントが存在するかどうかで既に実行されているかどうか判断
 		if(readAT.targetBrowser.currentURI && readAT.targetBrowser.currentURI.host=="twitter.com" &&
 		preDoc && (preDoc.getElementById("RAT_separator") || preDoc.getElementById("RAT_processing"))){
-			var alreadyDiv = doc.createElement("div");
-			alreadyDiv.setAttribute("class", "minor-notification");
-			alreadyDiv.style.display ="block";
-			alreadyDiv.innerHTML = readAT.getShortAddonName(bundle)+"<br>"+bundle.getString("alreadyOpened");
-			var ol = doc.getElementById("timeline");
-			ol.parentNode.insertBefore(alreadyDiv, ol);
-			return;
-		}
+            return true;
+        }
+    }
+    return false;
+},
+notifyAlreadyOpened : function (doc, bundle) {
+	var alreadyDiv = doc.createElement("div");
+	alreadyDiv.setAttribute("class", "minor-notification");
+	alreadyDiv.style.display ="block";
+	alreadyDiv.innerHTML = readAT.getShortAddonName(bundle)+"<br>"+bundle.getString("alreadyOpened");
+	var ol = doc.getElementById("timeline");
+	ol.parentNode.insertBefore(alreadyDiv, ol);
+},
+start : function(doc){
+	if(readAT.Branch.getBoolPref("general.disableThisAddonTemporarily")) return;
+
+	var bundle = document.getElementById("readalltweets-bundle");
+
+//	Application.console.log(doc.location.href)
+
+	if(readAT.checkAlreadyOpened(doc)){
+        readAT.notifyAlreadyOpened(doc, bundle);
+		return;
 	}
     readAT.targetBrowser = thisBrowser;
 	readAT.baseUrl = doc.location.protocol + '//' + doc.location.host + '/';
