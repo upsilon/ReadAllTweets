@@ -1126,15 +1126,18 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 			return;
 		}
 	}
+	readAT.newLastReply = newLis[0].getAttribute("id").replace("status_", "")-0;
 	
 	var tmp = 0;
 	var elm;
 	for(var j=newTweetsCount-1; j>-1; j--){
 		var statusId = newLis[j].getAttribute("id");
 		elm = doc.getElementById(statusId);
-		if(elm && readAT.getOffsetTopBody(elm) < readAT.getOffsetTopBody(readAT.separator)){
-			readAT.removeClass(elm, "newTweets");
-			readAT.addClass(elm, "newReplies");
+		if(elm){
+			if(readAT.getOffsetTopBody(elm) < readAT.getOffsetTopBody(readAT.separator)){
+				readAT.removeClass(elm, "newTweets");
+				readAT.addClass(elm, "newReplies");
+			}
 			continue;
 		}		
 		tmp++;
@@ -1145,8 +1148,6 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 		if(readAT.separatorHidden){
 			readAT.addClass(newLis[j], "RAT_buffered");
 		}
-
-		readAT.newLastReply = newLis[j].getAttribute("id").replace("status_", "")-0;
 	}
 	readAT.unreadCount += tmp;
 
@@ -1269,6 +1270,7 @@ checkDMFinish : function(){
 },
 autoMovingToUnreadTweets : function(){
 	if(!readAT.unreadCount || gBrowser.selectedBrowser==readAT.targetBrowser) return;
+	if(!readAT.alreadyReadLi) return;
 	var unreadTweet = readAT.alreadyReadLi.nextSibling;
 	if(!unreadTweet) return;
 	
