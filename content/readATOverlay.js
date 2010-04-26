@@ -220,6 +220,14 @@ notifyAlreadyOpened : function (doc, bundle) {
 	var ol = doc.getElementById("timeline");
 	ol.parentNode.insertBefore(alreadyDiv, ol);
 },
+createProcessingDiv : function (doc, bundle, ol) {
+	var processingDiv = doc.createElement("div");
+	processingDiv.id = "RAT_processing"
+	processingDiv.setAttribute("class", "minor-notification");
+	processingDiv.style.display ="block";
+	processingDiv.innerHTML = bundle.getString("processing") + ' (<span id="RAT_processing_count">1</span>)';
+	ol.parentNode.insertBefore(processingDiv, ol);
+},
 start : function(doc){
 	if(readAT.Branch.getBoolPref("general.disableThisAddonTemporarily")) return;
 
@@ -236,12 +244,7 @@ start : function(doc){
 
     readAT.ol = doc.getElementById("timeline");
 
-	var processingDiv = doc.createElement("div");
-	processingDiv.id = "RAT_processing"
-	processingDiv.setAttribute("class", "minor-notification");
-	processingDiv.style.display ="block";
-	processingDiv.innerHTML = bundle.getString("processing") + ' (<span id="RAT_processing_count">1</span>)';
-	readAT.ol.parentNode.insertBefore(processingDiv, readAT.ol);
+    readAT.createProcessingDiv(doc, bundle, ol);
 
 	readAT.setSettingsLink(doc);
     
