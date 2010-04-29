@@ -12,6 +12,7 @@ user : null,
 targetBrowser : null,
 onceCanceled : false,
 onceFailed : false,
+baseUrl: null,
 nativeJSON : Components.classes["@mozilla.org/dom/json;1"]
                  .createInstance(Components.interfaces.nsIJSON),
 Branch: Components.classes["@mozilla.org/preferences-service;1"]
@@ -72,19 +73,18 @@ onPageLoad : function(aEvent){
 	if(readAT.targetBrowser && readAT.targetBrowser.contentDocument==doc){
 		readAT.targetBrowser=null; 
 	}
-    if(!uri.match(/^https?:\/\/twitter.com\//))	return;
+    if(!uri.match(readAT.genUrlRegex('\/')))	return;
 
 /*    
  	//うまくいかない
 	var home_tab = doc.getElementById("home_tab");
 	home_tab.addEventListener("click", function(){gBrowser.getBrowserForDocument(doc).loadURI(home_tab.firstChild.href)} , false);
 */
-	if(uri.match(/^https?:\/\/twitter.com\/$/) || uri.match(/^https?:\/\/twitter.com\/home$/) || uri.match(/^https?:\/\/twitter.com\/#/)){
+	 if(uri.match(readAT.genUrlRegex('\/($|home$|#)'))){
 		readAT.setSettingsLink(doc);
 	}
 
-    if(doc.body.id=="list" && (uri=="http://twitter.com/" || uri=="https://twitter.com/" || 
-     uri=="http://twitter.com/#home" || uri=="https://twitter.com/#home" )){
+    if(doc.body.id=="list" && uri.match(readAT.genUrlRegex('\/(#home)?$'))){
      	setTimeout(function(){
      		readAT.checkLoadFinished(0, doc);
      	}, 500);
@@ -143,17 +143,17 @@ checkListName : function(uri, bodyid, doc){
 isTargetList : function(uri){
 	readAT.listname = readAT.Branch.getCharPref("general.lists");
      
-    if(uri.match(/https?:\/\/twitter.com\/\??[^#\/]*(#home)?$/)){
+    if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*(#home)?$"))){
      	return readAT.listname=="";
      }
 	else{
-		if(uri.match(/https?:\/\/twitter.com\/\??[^#\/]*#\/?list\/(.*)/)){
+		if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*#\/?list\/(.*)"))){
 			return readAT.listname==RegExp.$1;
 		}
-		else if(uri.match(/https?:\/\/twitter.com\/([^\/]*)\/lists\/([^\/]*)/)){
+		else if(uri.match(readAT.genUrlRegex("\/([^\/]*)\/lists\/([^\/]*)"))){
 			return readAT.listname==RegExp.$1 +"/"+ RegExp.$2;
 		}
-		else if(uri.match(/https?:\/\/twitter.com\/(.*)/)){
+		else if(uri.match(readAT.genUrlRegex("\/(.*)"))){
 			return readAT.listname==RegExp.$1;
 		}
 		else return false;
@@ -222,6 +222,7 @@ start : function(doc){
 		}
 	}
     readAT.targetBrowser = thisBrowser;
+	readAT.baseUrl = doc.location.protocol + '//' + doc.location.host + '/';
 
     readAT.ol = doc.getElementById("timeline");
 
@@ -273,10 +274,10 @@ start : function(doc){
 
 	readAT.alreadyReadLi = null;
 	readAT.lastStatus = readAT.getLastStatus();
-	readAT.newLastReply = readAT.getLastReply();
 	readAT.newLastStatus = readAT.lis[0].getAttribute("id").replace("status_","")-0;
 	if(readAT.lastStatus==0){
 		readAT.setLastStatus(readAT.newLastStatus);
+		readAT.setLastReply(readAT.newLastStatus);
 
 		var cls = "bulletin warning";
 		//chronological order
@@ -296,10 +297,8 @@ start : function(doc){
 		readAT.finish(doc);
 		return;
 	}
-	//デバッグ用
-	//readAT.lastStatus = ;
-
-	//while(true){
+	readAT.newLastReply = readAT.getLastReply();
+	readAT.newLastDM = readAT.getLastDM();
 
 	var newTweetsCount = 0;
 
@@ -566,7 +565,7 @@ getLastReply : function(){
     	readAT.setLastReply(readAT.lastStatus);
     	return readAT.lastStatus;
     }
-    return lastReplyList[readAT.user]-0;  
+    return lastReplyList[readAT.user]-0;
 },
 setLastReply : function(lastStatus){
 	if(!lastStatus) return;
@@ -863,7 +862,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			var tmpLis = readAT.getLis(tmpOl);
 			
 			if(!tmpLis.length){
-				var failed = (uri!="http://twitter.com/replies");
+				var failed = (uri!=readAT.getUrlFor("replies"));
 				readAT.getStatusesFinish(failed, uri, returnFunc, newLis, newTweetsCount);
 				return;
 			}
@@ -976,11 +975,11 @@ showNewStauses : function(){
 	readAT.nowFetchingNewStatuses = true;
 	
 	if(readAT.listname){
-		var uri = "http://twitter.com/"+readAT.listname;
+		var uri = readAT.getUrlFor(readAT.listname);
 		var pageKind = "list_show";
 	}
 	else{
-		var uri = "http://twitter.com/home";
+		var uri = readAT.getUrlFor("home");
 		var pageKind = "home";
 	}
 	readAT.lastStatus = readAT.newLastStatus;
@@ -1098,7 +1097,7 @@ showReplies : function(){
 	}
 	
 	var lastReply = readAT.newLastReply;
-	if(lastReply>-1) readAT.getStatusesInit("http://twitter.com/replies", "more", lastReply, "replies", readAT.showReplies2);
+	if(lastReply>-1) readAT.getStatusesInit(readAT.getUrlFor("replies"), "more", lastReply, "replies", readAT.showReplies2);
 	else readAT.checkDM();
 },
 showReplies2 : function(failed, pageCount, newLis, newTweetsCount){	
@@ -1159,33 +1158,6 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 	
 	return;
 },
-initLastDM : function(){
-	var doc = readAT.targetBrowser.contentDocument;
-
-	var message_count = doc.getElementById("message_count").firstChild.nodeValue;
-	if(message_count==0){
-		readAT.setLastDM(0);
-		return;
-	}
-
-	var req = new XMLHttpRequest();
-	req.open('GET', "http://twitter.com/inbox", false); 
-	req.overrideMimeType('text/xml');
-	req.send(null);
-	var res = req.responseText.replace(/[\n\r]/g, " ");
-
-	var tmpOl = readAT.getOl(res, "timeline");
-	var tmpLis = readAT.getLis(tmpOl);
-
-	if(!tmpLis.length){
-		readAT.setLastDM(0);
-	}
-	else{
-		readAT.lastDM = tmpLis[0].getAttribute("id").replace("direct_message_", "");
-		readAT.setLastDM(readAT.lastDM);
-	}
-	return;
-},
 checkDM : function(){	
 	if(!readAT.Branch.getBoolPref("general.notifyDM")){
 		readAT.checkDMFinish();
@@ -1195,15 +1167,15 @@ checkDM : function(){
 	var doc = readAT.targetBrowser.contentDocument;
 	readAT.separator = doc.getElementById("RAT_separator");
 
-/*
-	var message_count = doc.getElementById("message_count").firstChild.nodeValue;
-	if(message_count==0){
-		readAT.checkDMFinish();	
+	var message_count = doc.getElementById("message_count");
+	if(message_count && message_count.firstChild && message_count.firstChild.nodeValue==0){
+		//初期化
+		if(readAT.newLastDM==-1) readAT.setLastDM(0);
+		readAT.checkDMFinish();
 		return;
 	}
-*/	
 	var req = new XMLHttpRequest();
-	req.open('GET', "http://twitter.com/inbox", true);
+	req.open('GET', readAT.getUrlFor("inbox"), true);
 	req.overrideMimeType('text/xml');
 	req.onreadystatechange = function (aEvt) {
 	  if (req.readyState == 4) {
@@ -1215,8 +1187,6 @@ checkDM : function(){
 				var me_name = RegExp.$1;
 				readAT.user = me_name;
 			}
-			readAT.lastDM = readAT.getLastDM();
-			if(readAT.lastDM==-1) readAT.initLastDM();
 		
 			var re = new RegExp('<body [^>]* id="([^"]*)');
 			res.match(re);
@@ -1225,22 +1195,33 @@ checkDM : function(){
 				readAT.checkDMFinish();	
 				return;
 			}
+			readAT.lastDM = readAT.newLastDM;
 
 			var tmpOl = readAT.getOl(res, "timeline");
 			var tmpLis = readAT.getLis(tmpOl);
-		
+
 			if(!tmpLis.length){
+				//初期化
+				if(readAT.lastDM==-1){
+					readAT.setLastDM(0);
+				}
 				readAT.checkDMFinish();	
 				return;
 			}
 		
-			var newLastDM = tmpLis[0].getAttribute("id").replace("direct_message_", "")-0;
-			if(newLastDM <= readAT.lastDM){
+			readAT.newLastDM = tmpLis[0].getAttribute("id").replace("direct_message_", "")-0;
+			//初期化
+			if(readAT.lastDM==-1){
+				readAT.setLastDM(readAT.newLastDM);				
+				readAT.checkDMFinish();
+				return;
+			}
+
+			if(readAT.newLastDM <= readAT.lastDM){
 				readAT.checkDMFinish();	
 				return;
 			}
-		
-			readAT.lastDM = newLastDM;
+			
 			readAT.unreadCount++;
 		
 			var bundle = document.getElementById("readalltweets-bundle");
@@ -1306,6 +1287,9 @@ createLi : function(cls, msg){
 	
 	return li;
 },
+getUrlFor : function (path) {
+	return readAT.baseUrl + path;
+},
 getOl : function(string, id){
 	var doc = readAT.targetBrowser.contentDocument;
 	var re = new RegExp("<ol [^>]*id=['"+'"]'+id+'["'+"'][^>]*>(.*?)</ol>");
@@ -1331,6 +1315,9 @@ getOuterHTML : function(aElmArrow){
 	tub.appendChild(r.cloneContents());
 	
 	return tub.innerHTML;
+},
+genUrlRegex : function (path) {
+	return new RegExp('^https?:\/\/twitter\.com' + path);
 }
 };
 window.addEventListener("load", function() { readAT.init(); }, false);
