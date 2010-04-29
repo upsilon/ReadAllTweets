@@ -1163,7 +1163,7 @@ checkDM : function(){
 		readAT.checkDMFinish();
 		return;
 	}
-
+	
 	var doc = readAT.targetBrowser.contentDocument;
 	readAT.separator = doc.getElementById("RAT_separator");
 
