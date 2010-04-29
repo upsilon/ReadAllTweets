@@ -50,7 +50,7 @@ setCSS : function(){
 	
 	if(this.Branch.getBoolPref("general.changeColorOfNewTweets")){
 		css.innerHTML += "li.newTweets{background-color : #DDFFFF} ol.statuses li.newTweets:hover{background-color:#D5F7F7;}\n" +
-		"li.newReplies{background-color : #EEFFEE} ol.statuses li.newReplies:hover{background-color : #E6F7E6;}";
+		"li.newReplies{background-color : #EEEEFF} ol.statuses li.newReplies:hover{background-color : #E6E6F7;}";
 	}
 },
 setCheckInterval : function(){
@@ -90,11 +90,15 @@ onPageLoad : function(aEvent){
      	}, 500);
      	return;
      }
-     else readAT.checkListName(uri, doc.body.id, doc);
+     else{
+	    doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
+     	readAT.checkListName(uri, doc.body.id, doc);
+     }
 },
 checkLoadFinished : function(aCount, doc){
  	var ol = doc.getElementById("timeline");
  	if(ol.getElementsByTagName("li").length){
+	    doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
 		readAT.checkListName(doc.location.href, doc.body.id, doc);
 		return;
  	}
@@ -219,7 +223,6 @@ start : function(doc){
 	}
     readAT.targetBrowser = thisBrowser;
 
-    doc.body.addEventListener("DOMAttrModified", readAT.bodyIdObserver, false);
     readAT.ol = doc.getElementById("timeline");
 
 	var processingDiv = doc.createElement("div");
@@ -1220,6 +1223,7 @@ checkDM : function(){
 			var bodyId = RegExp.$1;
 			if(bodyId!="inbox"){
 				readAT.checkDMFinish();	
+				return;
 			}
 
 			var tmpOl = readAT.getOl(res, "timeline");
