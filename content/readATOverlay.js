@@ -11,7 +11,6 @@ lastDM : -1,
 user : null,
 targetBrowser : null,
 onceCanceled : false,
-onceFailed : false,
 baseUrl: null,
 nativeJSON : Components.classes["@mozilla.org/dom/json;1"]
                  .createInstance(Components.interfaces.nsIJSON),
@@ -50,8 +49,8 @@ setCSS : function(){
 	"a.RAT_setting_link:hover{cursor:pointer !important; text-decoration: none;}";
 	
 	if(this.Branch.getBoolPref("general.changeColorOfNewTweets")){
-		css.innerHTML += "li.newTweets{background-color : #DDFFFF} ol.statuses li.newTweets:hover{background-color:#D5F7F7;}\n" +
-		"li.newReplies{background-color : #EEEEFF} ol.statuses li.newReplies:hover{background-color : #E6E6F7;}";
+		css.innerHTML += "li.RAT_newTweets{background-color : #DDFFFF} ol.statuses li.RAT_newTweets:hover{background-color:#D5F7F7;}\n" +
+		"li.RAT_newReplies{background-color : #E6FFE6} ol.statuses li.RAT_newReplies:hover{background-color : #DEF7DE;}";
 	}
 },
 setCheckInterval : function(){
@@ -62,7 +61,11 @@ setCheckInterval : function(){
 	}
 	
 	clearInterval(readAT.setIntervalID);
-	readAT.setIntervalID = setInterval(readAT.showNewStauses, readAT.checkInterval);	
+    readAT.setIntervalID = setInterval(readAT.showNewStauses, readAT.checkInterval);
+    setTimeout(function(){
+        clearInterval(readAT.setIntervalID2);
+        readAT.setIntervalID2 = setInterval(readAT.showReplies, readAT.checkInterval);
+    }, 30000);
 },
 onPageLoad : function(aEvent){
     var doc = aEvent.originalTarget; // doc は "onload" event を起こしたドキュメント
@@ -129,11 +132,9 @@ bodyIdObserver : function(aEvent){
     readAT.checkListName(uri, bodyid, tmp.contentDocument);
  },
 checkListName : function(uri, bodyid, doc){
+    readAT.removeHTMLChange(doc);
     if(!(bodyid=="home" || bodyid=="list" || bodyid=="list_show") || 
     	!readAT.isTargetList(uri)){
-		
-    	readAT.removeHTMLChange(doc);
-
     	if(readAT.targetBrowser && readAT.targetBrowser.contentDocument==doc) readAT.targetBrowser=null; 
 	  	return;
     }
@@ -143,9 +144,9 @@ checkListName : function(uri, bodyid, doc){
 isTargetList : function(uri){
 	readAT.listname = readAT.Branch.getCharPref("general.lists");
      
-    if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*(#home)?$"))){
+    if(uri.match(readAT.genUrlRegex("\/\??[^#/]*(#|#home)?$"))){
      	return readAT.listname=="";
-     }
+    }
 	else{
 		if(uri.match(readAT.genUrlRegex("\/\??[^#\/]*#\/?list\/(.*)"))){
 			return readAT.listname==RegExp.$1;
@@ -235,14 +236,15 @@ start : function(doc){
 
 	readAT.setSettingsLink(doc);
     
-	var me_name = doc.getElementById("me_name");
-    if(me_name){
-    	readAT.user = me_name.firstChild.nodeValue;
+    var metas = doc.getElementsByTagName("meta");
+    for(var i=0; i<metas.length; i++){
+        if(metas[i].getAttribute("name")=="session-user-screen_name"){
+            readAT.user = metas[i].getAttribute("content");
+            break;
+        }
     }
-    else readAT.user = "";
     
 	readAT.separatorHidden = false;    
-    readAT.onceFailed = false;
     
 	
 	readAT.numOfTweetsShowingAtOneTime = readAT.Branch.getIntPref("general.numOfTweetsShowingAtOneTime");
@@ -269,8 +271,6 @@ start : function(doc){
 	var new_results_notification = doc.getElementById("new_results_notification");
 	var data = readAT.nativeJSON.decode(new_results_notification.getAttribute("data"));
 	readAT.max_refresh_size = data["timeline"]["max_refresh_size"];
-
-	clearInterval(readAT.setIntervalID2);
 
 	readAT.alreadyReadLi = null;
 	readAT.lastStatus = readAT.getLastStatus();
@@ -357,9 +357,15 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	if(newLis){
 		var tmp = newTweetsCount - readAT.existingNewTweetsCount2;
 		for(var j=tmp-1; j>-1; j--){
+            if(readAT.isReplie(newLis[j])){
+                readAT.addClass(newLis[j], "RAT_newReplies");
+            }
 			readAT.ol.insertBefore(newLis[j], readAT.lis[0]);
 		}
 		for(var j=1; j<readAT.lis.length; j++){
+            if(readAT.isReplie(readAT.lis[j])){
+                readAT.addClass(readAT.lis[j], "RAT_newReplies");
+            }
 			readAT.ol.insertBefore(readAT.lis[j], readAT.lis[j-1]);
 		}
 		//未読でない newLis
@@ -369,8 +375,14 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 		readAT.moreParent.appendChild(readAT.more);
 		readAT.more.href = readAT.more.href.replace(/&page=\d+/, "&page="+pageCount);
 	}
-	else{
+	else if(newTweetsCount){
+        if(readAT.isReplie(readAT.lis[0])){
+            readAT.addClass(readAT.lis[0], "RAT_newReplies");
+        }
 		for(var j=1; j<newTweetsCount; j++){
+            if(readAT.isReplie(readAT.lis[j])){
+                readAT.addClass(readAT.lis[j], "RAT_newReplies");
+            }
 			readAT.ol.insertBefore(readAT.lis[j], readAT.lis[j-1]);
 		}
 	}	
@@ -427,7 +439,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	//セッションの復元などで開かれた場合、スクロールも復元されるため、一番上にスクロールする。
 	var win = readAT.targetBrowser.contentWindow;
 	if(readAT.getOffsetTopBody(readAT.lis[0]) < win.pageYOffset){
-		readAT.targetBrowser.contentWindow.scroll(0, 0);
+		win.scroll(0, 0);
 	}
 	
 	readAT.showUnreadCount();
@@ -447,12 +459,14 @@ finish : function(doc){
 	readAT.setCheckInterval();
 	doc.body.addEventListener('DOMNodeInserted', readAT.updateCheck, false);
 
-	readAT.updatingWhenUserPosts = false;
+	readAT.nowUpdatingWhenUserPosts = false;
     var ptUpdateButton = doc.getElementById('tweeting_button') || doc.getElementById('update-submit');
     if(ptUpdateButton)
     	ptUpdateButton.addEventListener('click', function(){
-    	readAT.updatingWhenUserPosts=true;
-    	setTimeout(function(){readAT.showNewStauses();readAT.updatingWhenUserPosts=false;}, 500);
+    	readAT.nowUpdatingWhenUserPosts=true;
+//        clearInterval(readAT.updateSetTimeout);
+//        readAT.updateSetTimeout = 
+        setTimeout(function(){readAT.showNewStauses();readAT.nowUpdatingWhenUserPosts=false;}, 500);
     	}, true);
 
 	return;	
@@ -470,7 +484,7 @@ setHTMLChange : function(doc){
 	moveToUnread.innerHTML = bundle.getString("moveToUnreadTweets");
 	moveToUnread.addEventListener("click", readAT.moveToUnreadTweets, false);
 	if(readAT.listname){
-		moveToUnread.setAttribute("style", "display: block; margin: 0px 0px 2px; text-align: right; font-size: 1.2em;");
+		moveToUnread.setAttribute("style", "display: block; margin: 16px 0 5px; text-align: right; font-size: 1.2em;");
 		readAT.ol.parentNode.insertBefore(moveToUnread, readAT.ol);
 //		var heading = doc.getElementById("timeline_heading");
 //		moveToUnread.setAttribute("style", "display: block; margin: 0px 0px 2px; text-align: right; font-size: 1.2em;");
@@ -478,11 +492,15 @@ setHTMLChange : function(doc){
 	}
 	else{
 		var heading = doc.getElementById("heading");
-		heading.style.margin = "0 0 10px";
-		moveToUnread.setAttribute("style", "display: block; margin: -1.80em 0px 9px; text-align: right; font-size: 1.2em;");
+		moveToUnread.setAttribute("style", "display: block; margin: 5px 0px; text-align: right; font-size: 1.2em;");
 		heading.parentNode.insertBefore(moveToUnread, heading.nextSibling);
 	}
-	
+/*
+        var heading = doc.getElementById("heading");
+        heading.style.margin = "0 0 10px";
+        moveToUnread.setAttribute("style", "display: block; margin: 5px 0px; text-align: right; font-size: 1.2em;");
+        heading.parentNode.insertBefore(moveToUnread, heading.nextSibling);
+*/	
 	var new_results_notification = doc.getElementById("new_results_notification");
 	new_results_notification.innerHTML = '<div style="display:none">'+new_results_notification.innerHTML+'</div>';
 	
@@ -578,8 +596,7 @@ setLastReply : function(lastStatus){
 	return
 },
 getLastDM : function(){
-	var lastDMList = this.nativeJSON.decode(this.Branch.getComplexValue("lastDM",
-      Components.interfaces.nsISupportsString).data);
+	var lastDMList = this.nativeJSON.decode(this.Branch.getCharPref("lastDM"));
 
     if(!lastDMList[readAT.user]){
  		return -1;
@@ -727,7 +744,7 @@ updateStatuses : function(target){
 	var newLis = new Array();
 	for(var i=0; i<readAT.lis.length; i++){
 		if(!readAT.includeClass(readAT.lis[i],"buffered")){
-			if(readAT.includeClass(readAT.lis[i], "u-"+readAT.user)){
+			if(readAT.includeClass(readAT.lis[i], "mine")){
 				var status = readAT.lis[i].id.replace("status_", "")-0;
 				if(status<=readAT.lastStatus) break; 
 			}
@@ -747,12 +764,13 @@ updateStatuses : function(target){
 	target.dispatchEvent( evt ); // イベントを強制的に発生させる
 
 	//アドオン側で更新してる場合は、こちらのTweets は消去する。
-	if(readAT.nowFetchingNewStatuses || readAT.updatingWhenUserPosts){
+	if(readAT.nowFetchingNewStatuses || readAT.nowUpdatingWhenUserPosts){
 		for(var i=0; i<newLis.length; i++){
 			readAT.ol.removeChild(newLis[i]);
 		}
 		return;
 	}
+    //Twitter 側の最大更新件数以上の新着発言がある場合、削除してアドオン側で更新。
 	if(count==readAT.max_refresh_size){
 		for(var i=0; i<newLis.length; i++){
 			readAT.ol.removeChild(newLis[i]);
@@ -763,7 +781,7 @@ updateStatuses : function(target){
 		return;		
 	}
 	
-	var j=i-1;
+	var j=newTweetsCount-1;
 	while(true){
 		if(newLis[j]){
 			if(readAT.includeClass(newLis[j], "last-on-refresh")){
@@ -799,6 +817,7 @@ resetUnreadCount : function(){
 
 	
 	readAT.unreadCount = 0;
+    readAT.preAlreadyReadLi = readAT.alreadyReadLi;
 	readAT.alreadyReadLi = readAT.separator.previousSibling;
 	readAT.showUnreadCount();
 	doc.removeEventListener('scroll', readAT.resetUnreadCount, false);
@@ -807,7 +826,7 @@ resetUnreadCount : function(){
 	
 	readAT.setLastStatus(readAT.newLastStatus);
 	readAT.setLastReply(readAT.newLastReply);
-	readAT.setLastDM(readAT.lastDM);
+	readAT.setLastDM(readAT.newLastDM);
 
 	return;
 },
@@ -821,9 +840,9 @@ getOffsetTopBody : function(elem){
 	return top;
 },
 getStatusesInit : function(uri, moreId, lastStatus, pageKind, returnFunc){
-	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, new Array(), 0, false);	
+	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, new Array(), 0, 0);	
 },
-getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, onceFailed){
+getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, failedCount){
 	var doc = readAT.targetBrowser.contentDocument;
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
@@ -836,6 +855,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 	var req = new XMLHttpRequest();
 	req.open('GET', uri, true);
 	req.overrideMimeType('text/xml');
+    
 	req.onreadystatechange = function (aEvt) {
 	  if (req.readyState == 4) {
 	     if(req.status == 200){
@@ -847,13 +867,13 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			res.match(re);
 			var bodyId = RegExp.$1;
 			if(pageKind!=bodyId){
-		     	if(onceFailed){
-			     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+		     	if(failedCount<2){
+                    setTimeout(function(){
+                        readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
+                    }, 10000);              
 		     	}
 		     	else{
-		     		setTimeout(function(){
-				     	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
-		     		}, 10000);				
+                    readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
 		     	}
 		     	return;
 			}
@@ -896,7 +916,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 						span.innerHTML = res.match(re);
 						
 						if(!span.innerHTML){
-							readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+							readAT.getStatusesFinish(false, uri, returnFunc, newLis, newTweetsCount);
 							return;
 						}
 		
@@ -913,18 +933,19 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			return;
 	     }
 	     else{
-	     	if(onceFailed){
-		     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+           if(failedCount<2){
+                setTimeout(function(){
+                    readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
+                }, 10000);
 	     	}
 	     	else{
-	     		setTimeout(function(){
-			     	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, true);
-	     		}, 10000);
+                readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
 	     	}
 	     	return;
 	     }
 	  }
 	};
+    req.setRequestHeader("If-Modified-Since", "Thu, 01 Jun 1970 00:00:00 GMT");
 	req.send(null);
 	
 },
@@ -948,24 +969,20 @@ getStatusesFinish : function(failed, uri, returnFunc, newLis, newTweetsCount){
 	return;
 },
 showNewStauses : function(){
-	var doc = readAT.targetBrowser.contentDocument;
-	if(!doc) return;
-//alert(readAT.updateNotifier.style.display)
-
 	//テキストエリアにフォーカス中なら後に
 	var focusNode = gBrowser.selectedBrowser.contentDocument.activeElement;
 	if(readAT.onceCanceled){
 		readAT.onceCanceled = false;
 	}
-	else if(focusNode.tagName=="TEXTAREA" || 
-		(focusNode.tagName=="INPUT" && focusNode.getAttribute("type")=="TEXT")){
+	else if(focusNode && (focusNode.tagName=="TEXTAREA" || 
+		(focusNode.tagName=="INPUT" && focusNode.getAttribute("type")=="TEXT"))){
 			
 			readAT.onceCanceled = true;
 			window.setTimeout(readAT.showNewStauses, readAT.checkInterval/2)
 			return;
 	}
 
-	if(!readAT.updatingWhenUserPosts && readAT.twitterUpdateIsWorking){
+	if(!readAT.nowUpdatingWhenUserPosts && readAT.twitterUpdateIsWorking){
 		//もし20分以上更新が行われてないなら、Twitterの自動アップデート機能が働いてないと判断し、コードから自動アップデートを行う。
 		if(readAT.getNow()-readAT.lastUpdateTime>readAT.Branch.getIntPref("general.checkIntervalOfNewTweets")*2*60000){
 			readAT.twitterUpdateIsWorking = false;
@@ -1001,7 +1018,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 		var cls = readAT.lis[i].getAttribute("class");
 		if(!cls) break;
 		if(cls.indexOf(" RAT_buffered")>-1) break;
-		if(cls.indexOf(" u-"+readAT.user+" ")==-1) break;
+		if(cls.indexOf(" mine")==-1) break;
 
 		if(readAT.lis[i].id.replace("status_", "")-0>readAT.lastStatus-0){
 			readAT.ol.removeChild(readAT.lis[i]);
@@ -1009,25 +1026,36 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 		}
 	}
 
-	var li = readAT.alreadyReadLi;
-	while(li){
-		if(li.nodeName=="LI"){
+    /*
+     * 漏れが出る
+    if(!readAT.unreadCount){
+        var preNewStatuses = doc.getElementsByClassName("RAT_newTweets");
+        for(var i=0; i<preNewStatuses.length; i++){
+            readAT.removeClass(preNewStatuses[i], "RAT_newTweets");
+        }
+        var preNewReplies = doc.getElementsByClassName("RAT_newReplies");
+        for(var i=0; i<preNewReplies.length; i++){
+            readAT.removeClass(preNewReplies[i], "RAT_newReplies");
+        }
+    }
+    */
+    var li = readAT.alreadyReadLi;
+    while(li && li!=readAT.preAlreadyReadLi){
+        if(li.nodeName=="LI"){
 			var cls = li.getAttribute("class");
 			//Read All Tweets からのメッセージ、あるいは自分の発言以外なら。
-			if(cls.indexOf(" RATMessage")==-1 && !readAT.includeClass(li, "u-"+readAT.user)){
-				if(cls.indexOf(" newTweets")>-1){
-					li.setAttribute("class", cls.replace(" newTweets",""));		
+			if(cls.indexOf(" RATMessage")==-1){
+				if(cls.indexOf(" RAT_newTweets")>-1){
+					li.setAttribute("class", cls.replace(" RAT_newTweets",""));		
 				}
-				else if(cls.indexOf(" newReplies")>-1){
-					li.setAttribute("class", cls.replace(" newReplies",""));		
+				else if(cls.indexOf(" RAT_newReplies")>-1){
+					li.setAttribute("class", cls.replace(" RAT_newReplies",""));		
 				}
-				else  break;
 			}
 		}
-		
 		li = li.previousSibling;
 	}
-	
+
 	if(newTweetsCount){
 		readAT.newLastStatus = newLis[0].getAttribute("id").replace("status_", "")-0;
 //		alert(readAT.newLastStatus)
@@ -1057,16 +1085,25 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 			
 			readAT.ol.insertBefore(cantGetLi, readAT.separator);
 			
-			readAT.showReplies();
+            readAT.nowFetchingNewStatuses = false;
 			return;
 		}
 	}
 
 	var selfTweetsCount = 0;
 	for(var j=newTweetsCount-1; j>-1; j--){
-		if(readAT.includeClass(newLis[j], "u-"+readAT.user)) selfTweetsCount++;
-		else readAT.addClass(newLis[j], "newTweets");
-		
+		if(readAT.includeClass(newLis[j], "mine")) selfTweetsCount++;
+		else{
+            if(readAT.isReplie(newLis[j])){
+		        if(doc.getElementById(newLis[j].id)){
+                    newTweetsCount--;
+                    continue;
+                }
+
+                readAT.addClass(newLis[j], "RAT_newReplies");
+            }
+            else readAT.addClass(newLis[j], "RAT_newTweets");
+        }
 		var status = newLis[j].getAttribute("id").replace("status_", "");
 
 		readAT.ol.insertBefore(newLis[j], readAT.separator);
@@ -1085,12 +1122,11 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.showUnreadCount();
 	readAT.autoMovingToUnreadTweets();
 
-	readAT.showReplies();
+    readAT.nowFetchingNewStatuses = false;
 	
 	return;
 },
 showReplies : function(){
-	readAT.nowFetchingNewStatuses = false;
 	if(!readAT.Branch.getBoolPref("general.showRepliesToo")){
 		readAT.checkDM();	
 		return;
@@ -1128,23 +1164,18 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 			return;
 		}
 	}
-	readAT.newLastReply = newLis[0].getAttribute("id").replace("status_", "")-0;
+    if(newLis[0]) readAT.newLastReply = newLis[0].getAttribute("id").replace("status_", "")-0;
 	
 	var tmp = 0;
 	var elm;
 	for(var j=newTweetsCount-1; j>-1; j--){
 		var statusId = newLis[j].getAttribute("id");
 		elm = doc.getElementById(statusId);
-		if(elm){
-			if(readAT.getOffsetTopBody(elm) < readAT.getOffsetTopBody(readAT.separator)){
-				readAT.removeClass(elm, "newTweets");
-				readAT.addClass(elm, "newReplies");
-			}
-			continue;
-		}		
+		if(elm) continue;
+        
 		tmp++;
 
-		readAT.addClass(newLis[j], "newReplies");
+		readAT.addClass(newLis[j], "RAT_newReplies");
 		readAT.ol.insertBefore(newLis[j], readAT.separator);
 		//update から呼ばれた場合のため
 		if(readAT.separatorHidden){
@@ -1181,13 +1212,7 @@ checkDM : function(){
 	  if (req.readyState == 4) {
 	     if(req.status == 200){
 			var res = req.responseText.replace(/[\n\r]/g, " ");
-			
-			if(!readAT.user){
-				res.match(/<span id="me_name">([^<]*)<\/span>/);
-				var me_name = RegExp.$1;
-				readAT.user = me_name;
-			}
-		
+					
 			var re = new RegExp('<body [^>]* id="([^"]*)');
 			res.match(re);
 			var bodyId = RegExp.$1;
@@ -1240,6 +1265,7 @@ checkDM : function(){
 	     }
 	  }
 	}
+    req.setRequestHeader("If-Modified-Since", "Thu, 01 Jun 1970 00:00:00 GMT");    
 	req.send(null);
 /*	for(var i = 1; i<tmpLis.length; i++){
 		var DM = tmpLis[i].getAttribute("id").replace("direct_message_", "");
@@ -1300,13 +1326,14 @@ getOl : function(string, id){
 	return tmpOl;
 },
 getLis : function(ol){
+//    return ol.getElementsByClassName("hentry");
 	var rawLis = ol.getElementsByTagName("li");
 	var lis = new Array();
 	var j = 0;
 	for(var i=0; i<rawLis.length; i++){
 		if(rawLis[i].parentNode==ol) lis[j++] = rawLis[i];
 	}
-	return lis;
+    return lis;
 },
 getOuterHTML : function(aElmArrow){
 	var doc = readAT.targetBrowser.contentDocument;
@@ -1318,6 +1345,12 @@ getOuterHTML : function(aElmArrow){
 },
 genUrlRegex : function (path) {
 	return new RegExp('^https?:\/\/twitter\.com' + path);
+},
+isReplie : function(aElm){
+    var entryContent = aElm.getElementsByClassName("entry-content");
+    if(!entryContent.length) return;
+    var content = entryContent[0].innerHTML;
+    return content.match(new RegExp('@<a [^>]*>' + readAT.user+"<")) || content.match(new RegExp('@' + readAT.user+"([^a-zA-z0-9_]|$)"))
 }
 };
 window.addEventListener("load", function() { readAT.init(); }, false);

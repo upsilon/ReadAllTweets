@@ -34,11 +34,11 @@
 			<label value="&numOfTweetsShowingAtOneTime;"/>
 			<textbox width="30" preference="extensions.readalltweets.general.numOfTweetsShowingAtOneTime"/>
 		</hbox>
-		<separator class="thin"/>
+		<separator class="groove"/>
 		<label value="&applyThisAddOnToFollowingList;"/>
+        <label value="(&writeListInThisFormUserList;)"/>
 		<textbox width="100" preference="extensions.readalltweets.general.lists"/>
-		<label value="&writeListInThisFormUserList;"/>
-		<separator class="thin"/>
+        <separator class="groove"/>
 		<hbox pack="center">
 			<button label="&setAllTweetsUntilNowAsAlreadyRead;" oncommand="readATOption.setAsAlreadyRead()"/>
 		</hbox>
