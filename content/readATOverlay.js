@@ -219,21 +219,27 @@ checkAlreadyOpened : function (doc) {
     }
     return false;
 },
-notifyAlreadyOpened : function (doc, bundle) {
-	var alreadyDiv = doc.createElement("div");
-	alreadyDiv.setAttribute("class", "minor-notification");
-	alreadyDiv.style.display ="block";
-	alreadyDiv.innerHTML = readAT.getShortAddonName(bundle)+"<br>"+bundle.getString("alreadyOpened");
-	var ol = doc.getElementById("timeline");
-	ol.parentNode.insertBefore(alreadyDiv, ol);
+insertNotifyAtTop : function (doc, html, attributes) {
+    var notifyDiv = doc.createElement("div");
+
+    notifyDiv.style.display = "block";
+    for (attrName in attributes) {
+        notifyDiv.setAttribute(attrName, attributes[attrName]);
+    }
+    notifyDiv.innerHTML = html;
+
+    var timeline = doc.getElementById("timeline");
+    timeline.parentNode.insertBefore(notifyDiv, timeline);
+
+    return notifyDiv;
 },
-createProcessingDiv : function (doc, bundle, ol) {
-	var processingDiv = doc.createElement("div");
-	processingDiv.id = "RAT_processing"
-	processingDiv.setAttribute("class", "minor-notification");
-	processingDiv.style.display ="block";
-	processingDiv.innerHTML = bundle.getString("processing") + ' (<span id="RAT_processing_count">1</span>)';
-	ol.parentNode.insertBefore(processingDiv, ol);
+notifyAlreadyOpened : function (doc, bundle) {
+    var html = readAT.getShortAddonName(bundle)+"<br>"+bundle.getString("alreadyOpened");
+    readAT.insertNotifyAtTop(doc, html, {"class": "minor-notification"});
+},
+createProcessingDiv : function (doc, bundle) {
+    var html = bundle.getString("processing") + ' (<span id="RAT_processing_count">1</span>)';
+    readAT.insertNotifyAtTop(doc, html, {id: "RAT_processing", "class": "minor-notification"});
 },
 start : function(doc){
 	if(readAT.Branch.getBoolPref("general.disableThisAddonTemporarily")) return;
@@ -246,12 +252,12 @@ start : function(doc){
         readAT.notifyAlreadyOpened(doc, bundle);
 		return;
 	}
-    readAT.targetBrowser = thisBrowser;
+    readAT.targetBrowser = gBrowser.getBrowserForDocument(doc);
 	readAT.baseUrl = doc.location.protocol + '//' + doc.location.host + '/';
 
     readAT.ol = doc.getElementById("timeline");
 
-    readAT.createProcessingDiv(doc, bundle, ol);
+    readAT.createProcessingDiv(doc, bundle);
 
 	readAT.setSettingsLink(doc);
     
@@ -352,13 +358,6 @@ start : function(doc){
 	readAT.existingNewTweetsCount2 = newTweetsCount;
 	readAT.start2(failed, 2, null, 0);
 },
-insertNotifyDiv : function (doc, bundle, className, text) {
-  var errorDiv = doc.createElement("div");
-  errorDiv.setAttribute("class", "bulletin " + className);
-  errorDiv.style.display = "block";
-  errorDiv.innerHTML = text;
-  readAT.ol.parentNode.insertBefore(errorDiv, readAT.ol);
-},
 //	GM_log("1, "+readAT.getTime());
 start2 : function(failed, pageCount, newLis, newTweetsCount){
 	newTweetsCount += readAT.existingNewTweetsCount2;
@@ -367,7 +366,8 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	var bundle = document.getElementById("readalltweets-bundle");
 
 	if(failed){
-        readAT.insertNotifyDiv(doc, bundle, 'alert', bundle.getString("notAllOfNewTweetsCouldBeGetted"));
+        var html = bundle.getString("notAllOfNewTweetsCouldBeGetted");
+        readAT.insertNotifyAtTop(doc, html, {"class": "bulletin alert"});
 	}
 
 	readAT.lis = readAT.getLis(readAT.ol);
