@@ -352,6 +352,13 @@ start : function(doc){
 	readAT.existingNewTweetsCount2 = newTweetsCount;
 	readAT.start2(failed, 2, null, 0);
 },
+insertNotifyDiv : function (doc, bundle, className, text) {
+  var errorDiv = doc.createElement("div");
+  errorDiv.setAttribute("class", "bulletin " + className);
+  errorDiv.style.display = "block";
+  errorDiv.innerHTML = text;
+  readAT.ol.parentNode.insertBefore(errorDiv, readAT.ol);
+},
 //	GM_log("1, "+readAT.getTime());
 start2 : function(failed, pageCount, newLis, newTweetsCount){
 	newTweetsCount += readAT.existingNewTweetsCount2;
@@ -360,11 +367,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	var bundle = document.getElementById("readalltweets-bundle");
 
 	if(failed){
-		var errorDiv = doc.createElement("div");
-		errorDiv.setAttribute("class", "bulletin alert");
-		errorDiv.style.display ="block";
-		errorDiv.innerHTML = bundle.getString("notAllOfNewTweetsCouldBeGetted");
-		readAT.ol.parentNode.insertBefore(errorDiv, readAT.ol);
+        readAT.insertNotifyDiv(doc, bundle, 'alert', bundle.getString("notAllOfNewTweetsCouldBeGetted"));
 	}
 
 	readAT.lis = readAT.getLis(readAT.ol);
