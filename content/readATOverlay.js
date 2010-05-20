@@ -1348,11 +1348,12 @@ getOl : function(string, id){
 },
 getLis : function(ol){
 //    return ol.getElementsByClassName("hentry");
-	var rawLis = ol.getElementsByTagName("li");
+	var rawLis = ol.childNodes;
 	var lis = new Array();
 	var j = 0;
 	for(var i=0; i<rawLis.length; i++){
-		if(rawLis[i].parentNode==ol) lis[j++] = rawLis[i];
+        if(1 != rawLis[i].nodeType) continue; // ELEMENT_NODE
+        if("li" == rawLis[i].tagName.toLowerCase()) lis[j++] = rawLis[i];
 	}
     return lis;
 },
