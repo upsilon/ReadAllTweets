@@ -302,8 +302,7 @@ start : function(doc){
 		var cls = "bulletin warning";
 		//chronological order
 		var msg = bundle.getString("belowHaveBeenSettedAsAlreadyRead") +"<br/>";
-		readAT.separator = readAT.createLi(cls, msg);
-		readAT.separator.id="RAT_separator";
+		readAT.separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
 		
 		var RAT_settings_a2 = doc.createElement("a");
 		RAT_settings_a2.setAttribute("class", "RAT_setting_link")
@@ -408,8 +407,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	var msg = bundle.getString("belowAreAlreadyRead")+
 	' <a href="javascript:void(0);" onclick="javascript:window.scroll(0, 0); return false;" style="display:block; float:right;">'+
 	bundle.getString("goToTop")+"</a>";
-	readAT.separator = readAT.createLi(cls, msg);
-	readAT.separator.id="RAT_separator";
+	readAT.separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
 	if(newTweetsCount){
 		if(readAT.lis[0].nextSibling) readAT.ol.insertBefore(readAT.separator, readAT.lis[0].nextSibling);
 		else readAT.ol.appendChild(readAT.separator);
@@ -1318,14 +1316,20 @@ autoMovingToUnreadTweets : function(){
 	readAT.moveToUnreadTweets();
 	return;
 },
-createLi : function(cls, msg){
+createLi : function(cls, msg, attributes){
 	var doc = readAT.targetBrowser.contentDocument;
 
-	var li = doc.createElement("li");
-	var liClass = "hentry status RATMessage";
-	if(readAT.separatorHidden) liClass += " RAT_buffered";
+    if (!attributes["class"]) {
+        attributes["class"] = "";
+    }
+	attributes["class"] += "hentry status RATMessage";
+	if(readAT.separatorHidden) attributes["class"] += " RAT_buffered";
 
-	li.setAttribute("class", liClass);
+	var li = doc.createElement("li");
+    for (attrName in attributes) {
+        li.setAttribute(attrName, attributes[attrName]);
+    }
+
 	li.innerHTML = '<div class="'+cls+'" style="display: block;">' +msg+'</div>';
 	
 	return li;
