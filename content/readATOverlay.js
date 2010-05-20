@@ -44,7 +44,14 @@ setCSS : function(){
 	var doc = readAT.targetBrowser.contentDocument;
 	
 	var css = doc.getElementById("RAT_CSS");
-	if(!css) return;
+    if(!css) {
+      var head = doc.getElementsByTagName("head")[0];
+
+      css = doc.createElement("style");
+      css.setAttribute("type", "text/css");
+      css.id = "RAT_CSS";
+      head.appendChild(css);
+    }
 	css.innerHTML = "li.RAT_buffered{display : none !important}\n" +
 	"a.RAT_setting_link:hover{cursor:pointer !important; text-decoration: none;}";
 	
@@ -262,11 +269,6 @@ start : function(doc){
 	readAT.numOfTweetsShowingAtOneTime = readAT.Branch.getIntPref("general.numOfTweetsShowingAtOneTime");
 	readAT.twitterUpdateIsWorking = false;
 
-	var head = doc.getElementsByTagName("head")[0];
-	var style = doc.createElement("style");
-	style.setAttribute("type", "text/css");
-	style.id = "RAT_CSS";
-	head.appendChild(style);
 	readAT.setCSS();
 
 	var ptUpdateSource = doc.getElementById('source');
