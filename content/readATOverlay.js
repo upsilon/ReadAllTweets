@@ -888,7 +888,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
                     }, 10000);              
 		     	}
 		     	else{
-                    readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+                    var pageCount = readAT.getStatusesFinish(uri, newLis);
+                    returnFunc(true, pageCount, newLis, newTweetsCount);
 		     	}
 		     	return;
 			}
@@ -898,7 +899,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			
 			if(!tmpLis.length){
 				var failed = (uri!=readAT.getUrlFor("replies"));
-				readAT.getStatusesFinish(failed, uri, returnFunc, newLis, newTweetsCount);
+                var pageCount = readAT.getStatusesFinish(uri, newLis);
+                returnFunc(failed, pageCount, newLis, newTweetsCount);
 				return;
 			}
 			var preLength = newLis.length;
@@ -916,7 +918,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 //				alert(newLis[newTweetsCount].innerHTML)
 				if(status==0){
 					Application.console.log(newTweetsCount)
-			     	readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+                    var pageCount = readAT.getStatusesFinish(uri, newLis);
+                    returnFunc(true, pageCount, newLis, newTweetsCount);
 					return;
 				}
 				
@@ -931,7 +934,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 						span.innerHTML = res.match(re);
 						
 						if(!span.innerHTML){
-							readAT.getStatusesFinish(false, uri, returnFunc, newLis, newTweetsCount);
+                            var pageCount = readAT.getStatusesFinish(uri, newLis);
+                            returnFunc(false, pageCount, newLis, newTweetsCount);
 							return;
 						}
 		
@@ -944,7 +948,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			}
 			//Application.console.log("status="+status);
 
-	     	readAT.getStatusesFinish(false, uri, returnFunc, newLis, newTweetsCount);
+            var pageCount = readAT.getStatusesFinish(uri, newLis);
+            returnFunc(false, pageCount, newLis, newTweetsCount);
 			return;
 	     }
 	     else{
@@ -954,7 +959,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
                 }, 10000);
 	     	}
 	     	else{
-                readAT.getStatusesFinish(true, uri, returnFunc, newLis, newTweetsCount);
+                var pageCount = readAT.getStatusesFinish(uri, newLis);
+                returnFunc(true, pageCount, newLis, newTweetsCount);
 	     	}
 	     	return;
 	     }
@@ -964,7 +970,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 	req.send(null);
 	
 },
-getStatusesFinish : function(failed, uri, returnFunc, newLis, newTweetsCount){
+getStatusesFinish : function(uri, newLis){
 //	//新規発言を取得しようとしているときに、 twitter 自体のアップデート機能が働き始めたなら、中止。
 //	if(uri.indexOf("http://twitter.com/replies")==-1 && readAT.twitterUpdateIsWorking) return;
 	
@@ -980,8 +986,7 @@ getStatusesFinish : function(failed, uri, returnFunc, newLis, newTweetsCount){
 	if(!pageCount) pageCount = 1;
 	pageCount++;
 
-	returnFunc(failed, pageCount, newLis, newTweetsCount);
-	return;
+	return pageCount;
 },
 showNewStauses : function(){
 	//テキストエリアにフォーカス中なら後に
