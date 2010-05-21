@@ -281,12 +281,7 @@ start : function(doc){
 	if(ptUpdateSource) ptUpdateSource.value = 'Read All Tweets(Reverse timeline)';
 
 	readAT.lis = readAT.getLis(readAT.ol);
-	for(var i=0; i<readAT.lis.length; i++){
-		var a = readAT.lis[i].getElementsByTagName("a");
-		for(var j=0; j<a.length; j++){
-			a[j].setAttribute("target","_blank");
-		}
-	}
+    readAT.changeLinkTargetAll(readAT.lis);
 		
 	var new_results_notification = doc.getElementById("new_results_notification");
 	var data = readAT.nativeJSON.decode(new_results_notification.getAttribute("data"));
@@ -973,15 +968,18 @@ getStatusesFinish : function(uri, newLis){
 //	//新規発言を取得しようとしているときに、 twitter 自体のアップデート機能が働き始めたなら、中止。
 //	if(uri.indexOf("http://twitter.com/replies")==-1 && readAT.twitterUpdateIsWorking) return;
 	
-	for(var i=0; i<newLis.length; i++){
-		var a = newLis[i].getElementsByTagName("a");
-		for(var j=0; j<a.length; j++){
-			a[j].setAttribute("target","_blank");
-		}
-	}
+    readAT.changeLinkTargetAll(newLis);
 	
     var pageCount = readAT.getPageCountFromURL(uri) + 1;
     return pageCount;
+},
+changeLinkTargetAll : function (lis) {
+    for(var i = 0; i < lis.length; i++) {
+        var a = lis[i].getElementsByTagName("a");
+        for(var j = 0; j < a.length; j++) {
+            a[j].setAttribute("target", "_blank");
+        }
+    }
 },
 getPageCountFromURL : function (uri) {
     if (uri.match(/[?&]page=(\d+)/)) {
