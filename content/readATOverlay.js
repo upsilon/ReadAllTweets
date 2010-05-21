@@ -854,10 +854,10 @@ getStatusesInit : function(uri, moreId, lastStatus, pageKind, returnFunc){
 },
 getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, failedCount){
 	var doc = readAT.targetBrowser.contentDocument;
+    var pageCount = readAT.getPageCountFromURL(uri);
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
 	if(countSpan){
-        var pageCount = readAT.getPageCountFromURL(uri);
 		countSpan.innerHTML = pageCount;
 	}
 
@@ -882,8 +882,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
                     }, 10000);              
 		     	}
 		     	else{
-                    var pageCount = readAT.getStatusesFinish(uri, newLis);
-                    returnFunc(true, pageCount, newLis, newTweetsCount);
+                    readAT.changeLinkTargetAll(newLis);
+                    returnFunc(true, pageCount + 1, newLis, newTweetsCount);
 		     	}
 		     	return;
 			}
@@ -893,8 +893,9 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			
 			if(!tmpLis.length){
 				var failed = (uri!=readAT.getUrlFor("replies"));
-                var pageCount = readAT.getStatusesFinish(uri, newLis);
-                returnFunc(failed, pageCount, newLis, newTweetsCount);
+
+                readAT.changeLinkTargetAll(newLis);
+                returnFunc(failed, pageCount + 1, newLis, newTweetsCount);
 				return;
 			}
 			var preLength = newLis.length;
@@ -912,8 +913,9 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 //				alert(newLis[newTweetsCount].innerHTML)
 				if(status==0){
 					Application.console.log(newTweetsCount)
-                    var pageCount = readAT.getStatusesFinish(uri, newLis);
-                    returnFunc(true, pageCount, newLis, newTweetsCount);
+
+                    readAT.changeLinkTargetAll(newLis);
+                    returnFunc(true, pageCount + 1, newLis, newTweetsCount);
 					return;
 				}
 				
@@ -928,8 +930,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 						span.innerHTML = res.match(re);
 						
 						if(!span.innerHTML){
-                            var pageCount = readAT.getStatusesFinish(uri, newLis);
-                            returnFunc(false, pageCount, newLis, newTweetsCount);
+                            readAT.changeLinkTargetAll(newLis);
+                            returnFunc(false, pageCount + 1, newLis, newTweetsCount);
 							return;
 						}
 		
@@ -942,8 +944,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 			}
 			//Application.console.log("status="+status);
 
-            var pageCount = readAT.getStatusesFinish(uri, newLis);
-            returnFunc(false, pageCount, newLis, newTweetsCount);
+            readAT.changeLinkTargetAll(newLis);
+            returnFunc(false, pageCount + 1, newLis, newTweetsCount);
 			return;
 	     }
 	     else{
@@ -953,8 +955,8 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
                 }, 10000);
 	     	}
 	     	else{
-                var pageCount = readAT.getStatusesFinish(uri, newLis);
-                returnFunc(true, pageCount, newLis, newTweetsCount);
+                readAT.changeLinkTargetAll(newLis);
+                returnFunc(true, pageCount + 1, newLis, newTweetsCount);
 	     	}
 	     	return;
 	     }
@@ -963,15 +965,6 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
     req.setRequestHeader("If-Modified-Since", "Thu, 01 Jun 1970 00:00:00 GMT");
 	req.send(null);
 	
-},
-getStatusesFinish : function(uri, newLis){
-//	//新規発言を取得しようとしているときに、 twitter 自体のアップデート機能が働き始めたなら、中止。
-//	if(uri.indexOf("http://twitter.com/replies")==-1 && readAT.twitterUpdateIsWorking) return;
-	
-    readAT.changeLinkTargetAll(newLis);
-	
-    var pageCount = readAT.getPageCountFromURL(uri) + 1;
-    return pageCount;
 },
 changeLinkTargetAll : function (lis) {
     for(var i = 0; i < lis.length; i++) {
