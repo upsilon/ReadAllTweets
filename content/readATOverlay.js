@@ -862,8 +862,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
 	if(countSpan){
-		uri.match(/[?&]page=(\d+)/);
-		var pageCount = RegExp.$1;
+        var pageCount = readAT.getPageCountFromURL(uri);
 		countSpan.innerHTML = pageCount;
 	}
 
@@ -981,12 +980,16 @@ getStatusesFinish : function(uri, newLis){
 		}
 	}
 	
-	uri.match(/[?&]page=(\d+)/);
-	var pageCount = RegExp.$1;
-	if(!pageCount) pageCount = 1;
-	pageCount++;
-
-	return pageCount;
+    var pageCount = readAT.getPageCountFromURL(uri) + 1;
+    return pageCount;
+},
+getPageCountFromURL : function (uri) {
+    if (uri.match(/[?&]page=(\d+)/)) {
+        return parseInt(RegExp.$1);
+    }
+    else {
+        return 1;
+    }
 },
 showNewStauses : function(){
 	//テキストエリアにフォーカス中なら後に
