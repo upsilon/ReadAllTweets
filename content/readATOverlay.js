@@ -915,7 +915,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 				var status = readAT.getStatusId(newLis[newTweetsCount]);
 				//status が適切に取得できなかった場合
 //				alert(newLis[newTweetsCount].innerHTML)
-				if(status==0){
+				if(!status){
 					Application.console.log(newTweetsCount)
 
                     readAT.changeLinkTargetAll(newLis);
