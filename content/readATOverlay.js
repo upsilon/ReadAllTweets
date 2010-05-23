@@ -5,7 +5,6 @@ setIntervalID : null,
 unreadCount : 0,
 lastStatus : null,
 newLastStatus : null,
-lis : null,
 lastDM : -1,
 user : null,
 targetBrowser : null,
@@ -281,8 +280,8 @@ start : function(doc){
 	if(ptUpdateSource) ptUpdateSource.value = 'Read All Tweets(Reverse timeline)';
 
     var timeline = readAT.getTimeline();
-    readAT.lis = readAT.getLis(timeline);
-    readAT.changeLinkTargetAll(readAT.lis);
+    var lis = readAT.getLis(timeline);
+    readAT.changeLinkTargetAll(lis);
 		
 	var new_results_notification = doc.getElementById("new_results_notification");
 	var data = readAT.nativeJSON.decode(new_results_notification.getAttribute("data"));
@@ -290,7 +289,7 @@ start : function(doc){
 
 	readAT.alreadyReadLi = null;
 	readAT.lastStatus = readAT.getLastStatus();
-	readAT.newLastStatus = readAT.getStatusId(readAT.lis[0]);
+	readAT.newLastStatus = readAT.getStatusId(lis[0]);
 	if(readAT.lastStatus==0){
 		readAT.setLastStatus(readAT.newLastStatus);
 		readAT.setLastReply(readAT.newLastStatus);
@@ -307,7 +306,7 @@ start : function(doc){
 			function(){ window.openDialog('chrome://readalltweets/content/readATOption.xul'); }, false);		
 		
 		readAT.separator.firstChild.appendChild(RAT_settings_a2);
-		timeline.insertBefore(readAT.separator, readAT.lis[0]);
+		timeline.insertBefore(readAT.separator, lis[0]);
 		
 		readAT.finish(doc);
 		return;
@@ -320,12 +319,12 @@ start : function(doc){
 //	GM_log("0, "+readAT.getTime());
 	var failed = false;
 	while(true){
-		var status = readAT.getStatusId(readAT.lis[newTweetsCount]);
+		var status = readAT.getStatusId(lis[newTweetsCount]);
 		
 		if(status <= readAT.lastStatus) break;
 		else{
 			newTweetsCount++;
-			if(!readAT.lis[newTweetsCount]){
+			if(!lis[newTweetsCount]){
 				readAT.more = doc.getElementById("more");
 				if(readAT.more) var uri = readAT.more.href;
 				if(!uri){
@@ -366,20 +365,20 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	}
 
     var timeline = readAT.getTimeline();
-    readAT.lis = readAT.getLis(timeline);
+    var lis = readAT.getLis(timeline);
 	if(newLis){
 		var tmp = newTweetsCount - readAT.existingNewTweetsCount2;
 		for(var j=tmp-1; j>-1; j--){
             if(readAT.isReplie(newLis[j])){
                 readAT.addClass(newLis[j], "RAT_newReplies");
             }
-			timeline.insertBefore(newLis[j], readAT.lis[0]);
+            timeline.insertBefore(newLis[j], lis[0]);
 		}
-		for(var j=1; j<readAT.lis.length; j++){
-            if(readAT.isReplie(readAT.lis[j])){
-                readAT.addClass(readAT.lis[j], "RAT_newReplies");
+        for(var j=1; j<lis.length; j++){
+            if(readAT.isReplie(lis[j])){
+                readAT.addClass(lis[j], "RAT_newReplies");
             }
-			timeline.insertBefore(readAT.lis[j], readAT.lis[j-1]);
+            timeline.insertBefore(lis[j], lis[j-1]);
 		}
 		//未読でない newLis
 		for(var j=tmp; j<newLis.length; j++){
@@ -389,14 +388,14 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 		readAT.more.href = readAT.more.href.replace(/&page=\d+/, "&page="+pageCount);
 	}
 	else if(newTweetsCount){
-        if(readAT.isReplie(readAT.lis[0])){
-            readAT.addClass(readAT.lis[0], "RAT_newReplies");
+        if(readAT.isReplie(lis[0])){
+            readAT.addClass(lis[0], "RAT_newReplies");
         }
 		for(var j=1; j<newTweetsCount; j++){
-            if(readAT.isReplie(readAT.lis[j])){
-                readAT.addClass(readAT.lis[j], "RAT_newReplies");
+            if(readAT.isReplie(lis[j])){
+                readAT.addClass(lis[j], "RAT_newReplies");
             }
-			timeline.insertBefore(readAT.lis[j], readAT.lis[j-1]);
+			timeline.insertBefore(lis[j], lis[j-1]);
 		}
 	}	
 			
@@ -406,29 +405,29 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	bundle.getString("goToTop")+"</a>";
 	readAT.separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
 	if(newTweetsCount){
-		if(readAT.lis[0].nextSibling) timeline.insertBefore(readAT.separator, readAT.lis[0].nextSibling);
+		if(lis[0].nextSibling) timeline.insertBefore(readAT.separator, lis[0].nextSibling);
 		else timeline.appendChild(readAT.separator);
 	}
-	else timeline.insertBefore(readAT.separator, readAT.lis[0]);
+	else timeline.insertBefore(readAT.separator, lis[0]);
 		
 	//heading.appendChild(moveToUnread);
 
 	readAT.unreadCount = newTweetsCount;
 	
-	//GM_log("readAT.lis.length:"+readAT.lis.length+" "+"readAT.numOfTweetsShowingAtOneTime:"+readAT.numOfTweetsShowingAtOneTime);
+	//GM_log("lis.length:"+lis.length+" "+"readAT.numOfTweetsShowingAtOneTime:"+readAT.numOfTweetsShowingAtOneTime);
 
-	readAT.lis = readAT.getLis(timeline);
+	lis = readAT.getLis(timeline);
 
 	//"buffered" class を消す
-	for(var i=0; i<readAT.lis.length; i++){
-		var cls = readAT.lis[i].getAttribute("class");
+	for(var i=0; i<lis.length; i++){
+		var cls = lis[i].getAttribute("class");
 		if(!cls) break;
-		if(cls.indexOf(" buffered")>-1) readAT.removeClass(readAT.lis[i], "buffered");
+		if(cls.indexOf(" buffered")>-1) readAT.removeClass(lis[i], "buffered");
 		else break;
 	}
 	//separator の分だけ＋1してある
-	if(readAT.numOfTweetsShowingAtOneTime && readAT.lis.length > readAT.numOfTweetsShowingAtOneTime+1){
-		readAT.lastShownStatus = readAT.lis[readAT.numOfTweetsShowingAtOneTime];
+	if(readAT.numOfTweetsShowingAtOneTime && lis.length > readAT.numOfTweetsShowingAtOneTime+1){
+		readAT.lastShownStatus = lis[readAT.numOfTweetsShowingAtOneTime];
 		readAT.lastShownStatusesCount = readAT.numOfTweetsShowingAtOneTime+1;
 		
 		var li = readAT.lastShownStatus;
@@ -450,7 +449,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 
 	//セッションの復元などで開かれた場合、スクロールも復元されるため、一番上にスクロールする。
 	var win = readAT.targetBrowser.contentWindow;
-	if(readAT.getOffsetTopBody(readAT.lis[0]) < win.pageYOffset){
+	if(readAT.getOffsetTopBody(lis[0]) < win.pageYOffset){
 		win.scroll(0, 0);
 	}
 	
@@ -657,15 +656,15 @@ showNextTweets : function(){
 	
 	doc.removeEventListener('scroll', readAT.showNextTweets, false);
 	
-	readAT.lis = readAT.getLis(readAT.getTimeline());
+//	var lis = readAT.getLis(readAT.getTimeline());
 		
 	var lastLi = readAT.lastShownStatus;
 	readAT.addClass(lastLi, "last-on-page");	
 /*	if(!lastLi){
-		for(var i=0; i<readAT.lis.length; i++){
-			if(readAT.lis[i].getAttribute("class").indexOf(" RAT_buffered")>-1) break;
+		for(var i=0; i<lis.length; i++){
+			if(lis[i].getAttribute("class").indexOf(" RAT_buffered")>-1) break;
 		}
-		lastLi = readAT.lis[i-1];
+		lastLi = lis[i-1];
 	}*/
 	if(readAT.separatorHidden){
 		//Read All Tweets からのメッセージ以外なら。
@@ -751,21 +750,21 @@ updateStatuses : function(target){
 	
 //	target.innerHTML = "";	
     var timeline = readAT.getTimeline();
-    readAT.lis = readAT.getLis(timeline);
+    var lis = readAT.getLis(timeline);
 
 
 	var count = target.innerHTML.match(/\d+/);
 	
 	var newLis = new Array();
-	for(var i=0; i<readAT.lis.length; i++){
-		if(!readAT.includeClass(readAT.lis[i],"buffered")){
-			if(readAT.includeClass(readAT.lis[i], "mine")){
-				var status = readAT.getStatusId(readAT.lis[i]);
+	for(var i=0; i<lis.length; i++){
+		if(!readAT.includeClass(lis[i],"buffered")){
+			if(readAT.includeClass(lis[i], "mine")){
+				var status = readAT.getStatusId(lis[i]);
 				if(status<=readAT.lastStatus) break; 
 			}
 			else break;
 		}
-		newLis[i] = readAT.lis[i];
+		newLis[i] = lis[i];
 		readAT.addClass(newLis[i], "RAT_buffered");
 		var a = newLis[i].getElementsByTagName("a");
 		for(var j=0; j<a.length; j++){
@@ -1031,17 +1030,17 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.separator = doc.getElementById("RAT_separator");
 
     var timeline = readAT.getTimeline();
-    readAT.lis = readAT.getLis(timeline);
+    var lis = readAT.getLis(timeline);
 
 	//自分の発言を消す
-	for(var i=0; i<readAT.lis.length; i++){
-		var cls = readAT.lis[i].getAttribute("class");
+	for(var i=0; i<lis.length; i++){
+		var cls = lis[i].getAttribute("class");
 		if(!cls) break;
 		if(cls.indexOf(" RAT_buffered")>-1) break;
 		if(cls.indexOf(" mine")==-1) break;
 
-		if(readAT.getStatusId(readAT.lis[i])>readAT.lastStatus-0){
-			timeline.removeChild(readAT.lis[i]);
+		if(readAT.getStatusId(lis[i])>readAT.lastStatus-0){
+			timeline.removeChild(lis[i]);
 			selfTweetsCount++;
 		}
 	}
@@ -1161,7 +1160,6 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
     var timeline = readAT.getTimeline();
 
 	readAT.separator = doc.getElementById("RAT_separator");
-	readAT.lis = readAT.getLis(timeline);
 	
 	if(failed){
 		var bundle = document.getElementById("readalltweets-bundle");
