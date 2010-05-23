@@ -297,7 +297,7 @@ start : function(doc){
 		var cls = "bulletin warning";
 		//chronological order
 		var msg = bundle.getString("belowHaveBeenSettedAsAlreadyRead") +"<br/>";
-		readAT.separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
+		var separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
 		
 		var RAT_settings_a2 = doc.createElement("a");
 		RAT_settings_a2.setAttribute("class", "RAT_setting_link")
@@ -305,8 +305,8 @@ start : function(doc){
 		RAT_settings_a2.addEventListener("click", 
 			function(){ window.openDialog('chrome://readalltweets/content/readATOption.xul'); }, false);		
 		
-		readAT.separator.firstChild.appendChild(RAT_settings_a2);
-		timeline.insertBefore(readAT.separator, lis[0]);
+		separator.firstChild.appendChild(RAT_settings_a2);
+		timeline.insertBefore(separator, lis[0]);
 		
 		readAT.finish(doc);
 		return;
@@ -403,12 +403,12 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	var msg = bundle.getString("belowAreAlreadyRead")+
 	' <a href="javascript:void(0);" onclick="javascript:window.scroll(0, 0); return false;" style="display:block; float:right;">'+
 	bundle.getString("goToTop")+"</a>";
-	readAT.separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
+	var separator = readAT.createLi(cls, msg, {id: "RAT_separator"});
 	if(newTweetsCount){
-		if(lis[0].nextSibling) timeline.insertBefore(readAT.separator, lis[0].nextSibling);
-		else timeline.appendChild(readAT.separator);
+		if(lis[0].nextSibling) timeline.insertBefore(separator, lis[0].nextSibling);
+		else timeline.appendChild(separator);
 	}
-	else timeline.insertBefore(readAT.separator, lis[0]);
+	else timeline.insertBefore(separator, lis[0]);
 		
 	//heading.appendChild(moveToUnread);
 
@@ -445,7 +445,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 		doc.addEventListener('scroll', readAT.showNextTweets, false);
 	}
 	
-	if(readAT.separator.getAttribute("class").indexOf(" RAT_buffered")>-1) readAT.separatorHidden = true;
+	if(separator.getAttribute("class").indexOf(" RAT_buffered")>-1) readAT.separatorHidden = true;
 
 	//セッションの復元などで開かれた場合、スクロールも復元されるため、一番上にスクロールする。
 	var win = readAT.targetBrowser.contentWindow;
@@ -696,7 +696,7 @@ showNextTweets : function(){
 		if(li.getAttribute("class").indexOf(" RATMessage")==-1) readAT.lastShownStatusesCount++;
 		readAT.removeClass(li, "RAT_buffered");
 	}
-	if(readAT.separator.getAttribute("class").indexOf(" RAT_buffered")==-1) readAT.separatorHidden = false;
+	if(doc.getElementById("RAT_separator").getAttribute("class").indexOf(" RAT_buffered")==-1) readAT.separatorHidden = false;
 	if(finished || !li.nextSibling){
 		nextDiv.parentNode.appendChild(readAT.more);
 		nextDiv.parentNode.removeChild(nextDiv);
@@ -821,9 +821,9 @@ resetUnreadCount : function(){
 	if(readAT.separatorHidden) return;
 	if(gBrowser.selectedBrowser != readAT.targetBrowser) return;
 	
-	readAT.separator = doc.getElementById("RAT_separator");
+	var separator = doc.getElementById("RAT_separator");
 	
-	var top = readAT.getOffsetTopBody(readAT.separator.firstChild);
+	var top = readAT.getOffsetTopBody(separator.firstChild);
 //	var height = separator.offsetHeight;
 //	GM_log(window.pageYOffset + " " +top+ " " + window.innerHeight);
 
@@ -832,7 +832,7 @@ resetUnreadCount : function(){
 	
 	readAT.unreadCount = 0;
     readAT.preAlreadyReadLi = readAT.alreadyReadLi;
-	readAT.alreadyReadLi = readAT.separator.previousSibling;
+	readAT.alreadyReadLi = separator.previousSibling;
 	readAT.showUnreadCount();
 	doc.removeEventListener('scroll', readAT.resetUnreadCount, false);
 	doc.removeEventListener('mouseover', readAT.resetUnreadCount, false);
@@ -1027,7 +1027,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	
 	var doc = readAT.getDoc();
 	
-	readAT.separator = doc.getElementById("RAT_separator");
+	var separator = doc.getElementById("RAT_separator");
 
     var timeline = readAT.getTimeline();
     var lis = readAT.getLis(timeline);
@@ -1095,14 +1095,14 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 			var msg = time+'<br/>'+bundle.getString("notAllOfNewTweetsCouldBeGetted");
 			var errorLi2 = readAT.createLi(cls, msg);
 	
-			timeline.insertBefore(errorLi2, readAT.separator);
+			timeline.insertBefore(errorLi2, separator);
 		}
 		else{
 			var cls = "bulletin alert";
 			var msg =  time+'<br/>'+bundle.getString("failedToGetNewTweets");
 			var cantGetLi = readAT.createLi(cls, msg);
 			
-			timeline.insertBefore(cantGetLi, readAT.separator);
+			timeline.insertBefore(cantGetLi, separator);
 			
             readAT.nowFetchingNewStatuses = false;
 			return;
@@ -1125,7 +1125,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
         }
 		var status = readAT.getStatusId(newLis[j]);
 
-		timeline.insertBefore(newLis[j], readAT.separator);
+		timeline.insertBefore(newLis[j], separator);
 		
 		//update から呼ばれた場合のため
 		if(readAT.separatorHidden){
@@ -1159,7 +1159,7 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
     var doc = readAT.getDoc();
     var timeline = readAT.getTimeline();
 
-	readAT.separator = doc.getElementById("RAT_separator");
+	var separator = doc.getElementById("RAT_separator");
 	
 	if(failed){
 		var bundle = document.getElementById("readalltweets-bundle");
@@ -1171,14 +1171,14 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 			
 			var msg = time+'<br/>'+bundle.getString(str);
 			var errorLi3 = readAT.createLi(cls, msg);
-			timeline.insertBefore(errorLi3, readAT.separator);
+			timeline.insertBefore(errorLi3, separator);
 		}
 		else{
 			var str = "failedToGetNewReples";
 			
 			var msg = time+'<br/>'+bundle.getString(str);
 			var errorLi3 = readAT.createLi(cls, msg);
-			timeline.insertBefore(errorLi3, readAT.separator);
+			timeline.insertBefore(errorLi3, separator);
 			
 			readAT.checkDM();
 			return;
@@ -1196,7 +1196,7 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 		tmp++;
 
 		readAT.addClass(newLis[j], "RAT_newReplies");
-		timeline.insertBefore(newLis[j], readAT.separator);
+		timeline.insertBefore(newLis[j], separator);
 		//update から呼ばれた場合のため
 		if(readAT.separatorHidden){
 			readAT.addClass(newLis[j], "RAT_buffered");
@@ -1216,7 +1216,7 @@ checkDM : function(){
 	}
 	
 	var doc = readAT.getDoc();
-	readAT.separator = doc.getElementById("RAT_separator");
+	var separator = doc.getElementById("RAT_separator");
 
 	if(0 == readAT.getDMCount(doc)){
 		//初期化
@@ -1274,7 +1274,7 @@ checkDM : function(){
 			var msg = bundle.getString("thereAreNewDMs");
 			var alertDMLi = readAT.createLi(cls, msg);
 		
-			readAT.getTimeline().insertBefore(alertDMLi, readAT.separator);
+			readAT.getTimeline().insertBefore(alertDMLi, separator);
 			//update から呼ばれた場合のため
 			if(readAT.separatorHidden){
 				readAT.addClass(alertDMLi, "RAT_buffered");
