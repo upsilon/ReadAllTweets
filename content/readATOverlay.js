@@ -289,7 +289,7 @@ start : function(doc){
 
 	readAT.alreadyReadLi = null;
 	readAT.lastStatus = readAT.getLastStatus();
-	readAT.newLastStatus = readAT.lis[0].getAttribute("id").replace("status_","")-0;
+	readAT.newLastStatus = readAT.getStatusId(readAT.lis[0]);
 	if(readAT.lastStatus==0){
 		readAT.setLastStatus(readAT.newLastStatus);
 		readAT.setLastReply(readAT.newLastStatus);
@@ -319,7 +319,7 @@ start : function(doc){
 //	GM_log("0, "+readAT.getTime());
 	var failed = false;
 	while(true){
-		var status = readAT.lis[newTweetsCount].getAttribute("id").replace("status_", "")-0;
+		var status = readAT.getStatusId(readAT.lis[newTweetsCount]);
 		
 		if(status <= readAT.lastStatus) break;
 		else{
@@ -669,7 +669,7 @@ showNextTweets : function(){
 		while(li.nodeName!="LI" || li.getAttribute("class").indexOf(" RATMessage")>-1){
 			li = li.previousSibling;
 		}
-		readAT.setLastStatus(li.id.replace("status_",""));
+		readAT.setLastStatus(readAT.getStatusId(li));
 		
 		readAT.unreadCount -= readAT.lastShownStatusesCount;
 		readAT.showUnreadCount();
@@ -755,7 +755,7 @@ updateStatuses : function(target){
 	for(var i=0; i<readAT.lis.length; i++){
 		if(!readAT.includeClass(readAT.lis[i],"buffered")){
 			if(readAT.includeClass(readAT.lis[i], "mine")){
-				var status = readAT.lis[i].id.replace("status_", "")-0;
+				var status = readAT.getStatusId(readAT.lis[i]);
 				if(status<=readAT.lastStatus) break; 
 			}
 			else break;
@@ -908,7 +908,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 
 			while(true){
 //				alert(readAT.newTweetsCount + " \n" + readAT.newLis[readAT.newTweetsCount].innerHTML)
-				var status = newLis[newTweetsCount].getAttribute("id").replace("status_", "")-0;
+				var status = readAT.getStatusId(newLis[newTweetsCount]);
 				//status が適切に取得できなかった場合
 //				alert(newLis[newTweetsCount].innerHTML)
 				if(status==0){
@@ -1034,7 +1034,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 		if(cls.indexOf(" RAT_buffered")>-1) break;
 		if(cls.indexOf(" mine")==-1) break;
 
-		if(readAT.lis[i].id.replace("status_", "")-0>readAT.lastStatus-0){
+		if(readAT.getStatusId(readAT.lis[i])>readAT.lastStatus-0){
 			readAT.ol.removeChild(readAT.lis[i]);
 			selfTweetsCount++;
 		}
@@ -1071,7 +1071,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	}
 
 	if(newTweetsCount){
-		readAT.newLastStatus = newLis[0].getAttribute("id").replace("status_", "")-0;
+		readAT.newLastStatus = readAT.getStatusId(newLis[0]);
 //		alert(readAT.newLastStatus)
 	}
 	
@@ -1118,7 +1118,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
             }
             else readAT.addClass(newLis[j], "RAT_newTweets");
         }
-		var status = newLis[j].getAttribute("id").replace("status_", "");
+		var status = readAT.getStatusId(newLis[j]);
 
 		readAT.ol.insertBefore(newLis[j], readAT.separator);
 		
@@ -1178,7 +1178,7 @@ showReplies2 : function(failed, pageCount, newLis, newTweetsCount){
 			return;
 		}
 	}
-    if(newLis[0]) readAT.newLastReply = newLis[0].getAttribute("id").replace("status_", "")-0;
+    if(newLis[0]) readAT.newLastReply = readAT.getStatusId(newLis[0]);
 	
 	var tmp = 0;
 	var elm;
@@ -1248,7 +1248,7 @@ checkDM : function(){
 				return;
 			}
 		
-			readAT.newLastDM = tmpLis[0].getAttribute("id").replace("direct_message_", "")-0;
+			readAT.newLastDM = readAT.getDirectMessageId(tmpLis[0]);
 			//初期化
 			if(readAT.lastDM==-1){
 				readAT.setLastDM(readAT.newLastDM);				
@@ -1366,6 +1366,22 @@ getOuterHTML : function(aElmArrow){
 },
 genUrlRegex : function (path) {
 	return new RegExp('^https?:\/\/twitter\.com' + path);
+},
+getStatusId : function (elem, prefix) {
+    if (!prefix) {
+        prefix = "status_";
+    }
+
+    var id = elem.id;
+    if (0 == id.indexOf(prefix)) {
+        return parseInt(id.substring(prefix.length));
+    }
+    else {
+        return false;
+    }
+},
+getDirectMessageId : function (elem) {
+    return readAT.getStatusId(elem, "direct_message_");
 },
 isReplie : function(aElm){
     var entryContent = aElm.getElementsByClassName("entry-content");
