@@ -1212,8 +1212,7 @@ checkDM : function(){
 	var doc = readAT.targetBrowser.contentDocument;
 	readAT.separator = doc.getElementById("RAT_separator");
 
-	var message_count = doc.getElementById("message_count");
-	if(message_count && message_count.firstChild && message_count.firstChild.nodeValue==0){
+	if(0 == readAT.getDMCount(doc)){
 		//初期化
 		if(readAT.newLastDM==-1) readAT.setLastDM(0);
 		readAT.checkDMFinish();
@@ -1292,6 +1291,15 @@ checkDM : function(){
 checkDMFinish : function(){
 	readAT.showUnreadCount();
 	readAT.autoMovingToUnreadTweets();
+},
+getDMCount : function (doc) {
+    var message_count = doc.getElementById("message_count");
+    if (message_count && message_count.firstChild) {
+        return parseInt(message_count.firstChild.nodeValue);
+    }
+    else {
+        return 0;
+    }
 },
 autoMovingToUnreadTweets : function(){
 	if(!readAT.unreadCount || gBrowser.selectedBrowser==readAT.targetBrowser) return;
