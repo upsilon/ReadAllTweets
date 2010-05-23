@@ -17,6 +17,9 @@ nativeJSON : Components.classes["@mozilla.org/dom/json;1"]
 Branch: Components.classes["@mozilla.org/preferences-service;1"]
 		.getService(Components.interfaces.nsIPrefService)
 		.getBranch("extensions.readalltweets."),
+
+_doc : null,
+
 init: function() {
 	var appcontent = document.getElementById("appcontent");   // ブラウザ
 	if(appcontent)
@@ -41,7 +44,7 @@ observe: function(aSubject, aTopic, aData){
     }
 },
 setCSS : function(){
-	var doc = readAT.targetBrowser.contentDocument;
+    var doc = readAT.getDoc();
 	
 	var css = doc.getElementById("RAT_CSS");
     if(!css) {
@@ -80,7 +83,7 @@ onPageLoad : function(aEvent){
 
     var uri = doc.location.href;
 //    Application.console.log(uri)
-	if(readAT.targetBrowser && readAT.targetBrowser.contentDocument==doc){
+	if(readAT.targetBrowser && readAT.getDoc()==doc){
 		readAT.targetBrowser=null; 
 	}
     if(!uri.match(readAT.genUrlRegex('\/')))	return;
@@ -356,7 +359,7 @@ start : function(doc){
 start2 : function(failed, pageCount, newLis, newTweetsCount){
 	newTweetsCount += readAT.existingNewTweetsCount2;
 	
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	var bundle = document.getElementById("readalltweets-bundle");
 
 	if(failed){
@@ -453,12 +456,13 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 	}
 	
 	readAT.showUnreadCount();
-	readAT.finish(doc);
+	readAT.finish();
 	readAT.showReplies();
 	
 	return;
 },
-finish : function(doc){
+finish : function(){
+    var doc = readAT.getDoc();
 	var processingDiv = doc.getElementById("RAT_processing");
 	processingDiv.parentNode.removeChild(processingDiv);
 
@@ -527,8 +531,8 @@ removeHTMLChange : function(doc){
 	var new_results_notification = doc.getElementById("new_results_notification");
 	new_results_notification.firstChild.style.display ="block";
 
-	var doc = readAT.targetBrowser.contentDocument;
-	doc.body.removeEventListener('DOMNodeInserted', readAT.updateCheck, false);
+    var doc = readAT.getDoc();
+    doc.body.removeEventListener('DOMNodeInserted', readAT.updateCheck, false);
 },
 moveToUnreadTweets : function(){
 	if(!readAT.alreadyReadLi) return;
@@ -644,7 +648,7 @@ getTime : function(){
 },
 showNextTweets : function(){
 //GM_log("hideTweets.length:"+readAT.hideTweets.length+" readAT.lis.length:"+readAT.lis.length)
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	var win = readAT.targetBrowser.contentWindow;
 
 	var nextDiv = doc.getElementById("showNext");
@@ -717,7 +721,7 @@ includeClass : function(aElem, aClass){
 	return (cls.indexOf(" "+aClass+" ")>-1);	
 },
 showUnreadCount : function(){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	
 	if(readAT.unreadCount){
 		if(doc.title.match(/^\(\d+\)\s/)) doc.title = doc.title.replace(RegExp.lastMatch, '('+ readAT.unreadCount + ') ');
@@ -811,7 +815,7 @@ tabSelected : function(event){
 	readAT.resetUnreadCount();
 },
 resetUnreadCount : function(){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	var win = readAT.targetBrowser.contentWindow;
 
 	if(readAT.separatorHidden) return;
@@ -853,7 +857,7 @@ getStatusesInit : function(uri, moreId, lastStatus, pageKind, returnFunc){
 	readAT.getStatuses(uri, moreId, lastStatus, pageKind, returnFunc, new Array(), 0, 0);	
 },
 getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, failedCount){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
     var pageCount = readAT.getPageCountFromURL(uri);
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
@@ -1021,7 +1025,7 @@ showNewStauses : function(){
 showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.lastUpdateTime = readAT.getNow();
 	
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	
 	readAT.separator = doc.getElementById("RAT_separator");
 
@@ -1151,7 +1155,7 @@ showReplies : function(){
 	else readAT.checkDM();
 },
 showReplies2 : function(failed, pageCount, newLis, newTweetsCount){	
-	var doc = readAT.targetBrowser.contentDocument;
+    var doc = readAT.getDoc();
 	readAT.separator = doc.getElementById("RAT_separator");
 	readAT.lis = readAT.getLis(readAT.ol);
 	
@@ -1209,7 +1213,7 @@ checkDM : function(){
 		return;
 	}
 	
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	readAT.separator = doc.getElementById("RAT_separator");
 
 	if(0 == readAT.getDMCount(doc)){
@@ -1313,7 +1317,7 @@ autoMovingToUnreadTweets : function(){
 			return;
 	}
 
-//	var doc = readAT.targetBrowser.contentDocument;
+//	var doc = readAT.getDoc();
 	var win = readAT.targetBrowser.contentWindow;
 	var top = readAT.getOffsetTopBody(unreadTweet);
 	//var bottom = top + unreadTweet.height;
@@ -1324,7 +1328,7 @@ autoMovingToUnreadTweets : function(){
 	return;
 },
 createLi : function(cls, msg, attributes){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 
     if (!attributes["class"]) {
         attributes["class"] = "";
@@ -1345,7 +1349,7 @@ getUrlFor : function (path) {
 	return readAT.baseUrl + path;
 },
 getOl : function(string, id){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	var re = new RegExp("<ol [^>]*id=['"+'"]'+id+'["'+"'][^>]*>(.*?)</ol>");
 	string.match(re);
 	var tmpString = RegExp.$1;
@@ -1365,7 +1369,7 @@ getLis : function(ol){
     return lis;
 },
 getOuterHTML : function(aElmArrow){
-	var doc = readAT.targetBrowser.contentDocument;
+	var doc = readAT.getDoc();
 	var r = doc.createRange(), tub = doc.createElement("div");
 	r.selectNode(this);
 	tub.appendChild(r.cloneContents());
@@ -1390,6 +1394,9 @@ getStatusId : function (elem, prefix) {
 },
 getDirectMessageId : function (elem) {
     return readAT.getStatusId(elem, "direct_message_");
+},
+getDoc : function () {
+    return readAT._doc ? readAT._doc : readAT.targetBrowser.contentDocument;
 },
 isReplie : function(aElm){
     var entryContent = aElm.getElementsByClassName("entry-content");
