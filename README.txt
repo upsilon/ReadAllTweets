@@ -22,6 +22,13 @@ pbtweet+( http://userscripts.org/scripts/show/66696 ) と一緒に使う場合�
 
 
 history-------------------------------------------------------------------------------------------------------------------
+ver 0.5.0.0
+-Disable Twitter's update notification to get tweets without omission
+-Fix the bug tweets color doesn't return when new tweets are fetched
+
+-取得漏れが起きないように、Twitter自体のアップデート機能を無効化
+-新しい発言の色を元に戻すのが失敗する問題を修正
+
 ver 0.4.5.0
 -Fix to reduce failure frequency
 -Fix the bug tweets color doesn't return when new tweets are fetched
