@@ -738,7 +738,6 @@ showUnreadCount : function(){
 updateCheck : function(aEvent){
 	if(aEvent.target.id!="results_update") return;
 
-	readAT.twitterUpdateIsWorking = true;
 	setTimeout(function(){readAT.updateStatuses(aEvent.target)}, 20);
 },
 updateStatuses : function(target){
