@@ -891,7 +891,7 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 	  if (req.readyState == 4) {
 	     if(req.status == 200){
 			//整形式になってないとエラーが出る（AT&Tなど＆が含まれている語が流行のトピックに入ってる場合）可能性があるので、responseXML ではなく responseText でいく
-			var res = req.responseText.replace(/[\n\r]/g, " ");
+			var res = req.responseText;
 			
 			//body の id から、適切なページを取得できてるかを検証
 			var re = new RegExp('<body [^>]* id="([^"]*)');
@@ -1347,7 +1347,7 @@ getUrlFor : function (path) {
 },
 getOl : function(string, id){
 	var doc = readAT.targetBrowser.contentDocument;
-	var re = new RegExp("<ol [^>]*id=['"+'"]'+id+'["'+"'][^>]*>(.*?)</ol>");
+	var re = new RegExp("<ol [^>]*id=['"+'"]'+id+'["'+"'][^>]*>([\S\s]*?)</ol>");
 	string.match(re);
 	var tmpString = RegExp.$1;
 	var tmpOl = doc.createElement("ol");
