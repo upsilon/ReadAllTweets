@@ -7,7 +7,7 @@ Other functions
 -Show replies from users you don't follow, too(you can turn off this setting)
 -Notify new DMs, too
 
-If you use with pbtweet+( http://userscripts.org/scripts/show/66696 ), turn off pbtweet+'s "Auto Update" option. 
+If you use with pbtweet+( http://userscripts.org/scripts/show/66696 ), turn off pbtweet+'s "Auto Update", "Growl Notification" options. 
 
 Twitter のタイムラインをすべて読む人のため、未読発言のみ古いものから順に表示します。
 指定のリストにだけこのアドオンを適用することもできます。
@@ -18,10 +18,19 @@ Twitter のタイムラインをすべて読む人のため、未読発言のみ
 -フォローしてる人以外からの返信も表示
 -新しいダイレクトメッセージの通知 
 
-pbtweet+( http://userscripts.org/scripts/show/66696 ) と一緒に使う場合、pbtweet+ の "Auto Update" のオプションをオフにしてください。
+pbtweet+( http://userscripts.org/scripts/show/66696 ) と一緒に使う場合、pbtweet+ の "Auto Update", "Growl Notification" のオプションをオフにしてください。
 
 
 history-------------------------------------------------------------------------------------------------------------------
+ver 0.5.0.0
+-Disable Twitter's update notification to get tweets without omission
+-Fix not to get new tweets doubly
+-Fix the bug tweets color doesn't return when new tweets are fetched
+
+-取得漏れが起きないように、Twitter自体のアップデート機能を無効化
+-二重に発言を取得してしまうことがある問題を修正
+-新しい発言の色を元に戻すのが失敗する問題を修正
+
 ver 0.4.5.0
 -Fix to reduce failure frequency
 -Fix the bug tweets color doesn't return when new tweets are fetched

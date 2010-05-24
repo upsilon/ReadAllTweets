@@ -69,12 +69,15 @@ setCheckInterval : function(){
 		readAT.checkInterval = 60000 * this.Branch.getIntPref("general.checkIntervalOfNewTweets");
 	}
 	
-	clearInterval(readAT.setIntervalID);
     readAT.setIntervalID = setInterval(readAT.showNewStauses, readAT.checkInterval);
     setTimeout(function(){
-        clearInterval(readAT.setIntervalID2);
         readAT.setIntervalID2 = setInterval(readAT.showReplies, readAT.checkInterval);
     }, 30000);
+},
+clearCheckInterval : function(){
+    clearInterval(readAT.setIntervalID);
+    clearInterval(readAT.setIntervalID2);
+    return;
 },
 onPageLoad : function(aEvent){
     var doc = aEvent.originalTarget; // doc は "onload" event を起こしたドキュメント
@@ -83,7 +86,8 @@ onPageLoad : function(aEvent){
     var uri = doc.location.href;
 //    Application.console.log(uri)
 	if(readAT.targetBrowser && readAT.getDoc()==doc){
-		readAT.targetBrowser=null; 
+		readAT.targetBrowser=null;
+        readAT.clearCheckInterval();
 	}
     if(!uri.match(readAT.genUrlRegex('\/')))	return;
 
@@ -253,6 +257,9 @@ start : function(doc){
         readAT.notifyAlreadyOpened(doc, bundle);
 		return;
 	}
+    
+    readAT.clearCheckInterval();
+        
     readAT.targetBrowser = gBrowser.getBrowserForDocument(doc);
 	readAT.baseUrl = doc.location.protocol + '//' + doc.location.host + '/';
 
@@ -523,6 +530,8 @@ removeHTMLChange : function(doc){
 
     var doc = readAT.getDoc();
     doc.body.removeEventListener('DOMNodeInserted', readAT.updateCheck, false);
+
+    readAT.clearCheckInterval();
 },
 moveToUnreadTweets : function(){
 	if(!readAT.alreadyReadLi) return;
@@ -733,17 +742,15 @@ showUnreadCount : function(){
 updateCheck : function(aEvent){
 	if(aEvent.target.id!="results_update") return;
 
-	readAT.twitterUpdateIsWorking = true;
 	setTimeout(function(){readAT.updateStatuses(aEvent.target)}, 20);
 },
 updateStatuses : function(target){
-	readAT.lastStatus = readAT.newLastStatus-0;
 	
-//	target.innerHTML = "";	
     var timeline = readAT.getTimeline();
     var lis = readAT.getLis(timeline);
 
-
+/*
+    readAT.lastStatus = readAT.newLastStatus-0;
 	var count = target.innerHTML.match(/\d+/);
 	
 	var newLis = new Array();
@@ -762,13 +769,31 @@ updateStatuses : function(target){
 			a[j].setAttribute("target", "_blank");
 		}
 	}
-	var newTweetsCount = i;
+    var newTweetsCount = i;
+*/
+    //Twitter 側のアップデートは不具合が起こる可能性があるため、こちらのアップデートは削除し、アドオン側のアップデートのみ適用
+    var newLis = new Array();
+    for(var i=0; i<lis.length; i++){
+        if(!readAT.includeClass(lis[i],"buffered")){
+            if(readAT.includeClass(lis[i], "mine")){
+                var status = readAT.getStatusId(lis[i]);
+                if(status<=readAT.newLastStatus) break; 
+            }
+            else break;
+        }
+        readAT.removeElem(lis[i]);
+    }
+    
+    var evt = document.createEvent( "MouseEvents" ); // マウスイベントを作成
+    evt.initEvent("click", false, true ); // イベントの詳細を設定
+    target.dispatchEvent( evt ); // イベントを強制的に発生させる
+    
+    readAT.showUnreadCount();
 
-	var evt = document.createEvent( "MouseEvents" ); // マウスイベントを作成
-	evt.initEvent("click", false, true ); // イベントの詳細を設定
-	target.dispatchEvent( evt ); // イベントを強制的に発生させる
+    return;
 
-	//アドオン側で更新してる場合は、こちらのTweets は消去する。
+
+/*	//アドオン側で更新してる場合は、こちらのTweets は消去する。
 	if(readAT.nowFetchingNewStatuses || readAT.nowUpdatingWhenUserPosts){
 		for(var i=0; i<newLis.length; i++){
 			timeline.removeChild(newLis[i]);
@@ -785,7 +810,8 @@ updateStatuses : function(target){
 		
 		return;		
 	}
-	
+*/
+/*
 	for (var j = newTweetsCount - 1; j >= 0; j--) {
 		if(newLis[j]){
 			if(readAT.includeClass(newLis[j], "last-on-refresh")){
@@ -795,6 +821,7 @@ updateStatuses : function(target){
 		}
 	}
 	readAT.showNewStauses2(false, null, newLis, newTweetsCount);
+*/
 },
 tabSelected : function(event){
 	var browser = gBrowser.selectedTab.linkedBrowser;
@@ -846,6 +873,10 @@ getStatusesInit : function(uri, moreId, lastStatus, pageKind, returnFunc){
 },
 getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, failedCount){
 	var doc = readAT.getDoc();
+    if(!doc){
+        readAT.clearCheckInterval();
+        return;
+    }
     var pageCount = readAT.getPageCountFromURL(uri);
 	
 	var countSpan = doc.getElementById("RAT_processing_count");
@@ -1008,7 +1039,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 	readAT.lastUpdateTime = readAT.getNow();
 	
 	var doc = readAT.getDoc();
-	
+
 	var separator = doc.getElementById("RAT_separator");
 
     var timeline = readAT.getTimeline();
@@ -1027,19 +1058,18 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 		}
 	}
 
-    /*
-     * 漏れが出る
     if(!readAT.unreadCount){
         var preNewStatuses = doc.getElementsByClassName("RAT_newTweets");
-        for(var i=0; i<preNewStatuses.length; i++){
-            readAT.removeClass(preNewStatuses[i], "RAT_newTweets");
+        while(preNewStatuses.length){
+            readAT.removeClass(preNewStatuses[0], "RAT_newTweets");
         }
         var preNewReplies = doc.getElementsByClassName("RAT_newReplies");
-        for(var i=0; i<preNewReplies.length; i++){
-            readAT.removeClass(preNewReplies[i], "RAT_newReplies");
+        while(preNewReplies.length){
+            readAT.removeClass(preNewReplies[0], "RAT_newReplies");
         }
     }
-    */
+
+/*
     var li = readAT.alreadyReadLi;
     while(li && li!=readAT.preAlreadyReadLi){
         if(li.nodeName=="LI"){
@@ -1056,7 +1086,7 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
 		}
 		li = li.previousSibling;
 	}
-
+*/
 	if(newTweetsCount){
 		readAT.newLastStatus = readAT.getStatusId(newLis[0]);
 //		alert(readAT.newLastStatus)
@@ -1105,17 +1135,16 @@ showNewStauses2 : function(failed, pageCount, newLis, newTweetsCount){
             }
             else readAT.addClass(newLis[j], "RAT_newTweets");
         }
-		var status = readAT.getStatusId(newLis[j]);
+        //update から呼ばれた場合のため
+        if(readAT.separatorHidden){
+            if(newLis[j].getAttribute("class").indexOf(" RAT_buffered")==-1){
+                readAT.addClass(newLis[j], "RAT_buffered");
+            }
+        }
+        else readAT.removeClass(newLis[j], "RAT_buffered");
 
 		timeline.insertBefore(newLis[j], separator);
 		
-		//update から呼ばれた場合のため
-		if(readAT.separatorHidden){
-			if(newLis[j].getAttribute("class").indexOf(" RAT_buffered")==-1){
-				readAT.addClass(newLis[j], "RAT_buffered");
-			}
-		}
-		else readAT.removeClass(newLis[j], "RAT_buffered");
 	}
 	
 	readAT.unreadCount += newTweetsCount - selfTweetsCount;
