@@ -230,7 +230,7 @@ insertNotifyAtTop : function (doc, html, attributes) {
     notifyDiv.innerHTML = html;
 
     var timeline = doc.getElementById("timeline");
-    timeline.parentNode.insertBefore(notifyDiv, timeline);
+    readAT.insertBefore(notifyDiv, timeline);
 
     return notifyDiv;
 },
@@ -306,7 +306,7 @@ start : function(doc){
 			function(){ window.openDialog('chrome://readalltweets/content/readATOption.xul'); }, false);		
 		
 		separator.firstChild.appendChild(RAT_settings_a2);
-		timeline.insertBefore(separator, lis[0]);
+		readAT.insertBefore(separator, lis[0]);
 		
 		readAT.finish(doc);
 		return;
@@ -333,7 +333,7 @@ start : function(doc){
 				}
 				
 				readAT.moreParent =readAT.more.parentNode; 
-				readAT.moreParent.removeChild(readAT.more);
+				readAT.removeElem(readAT.more);
 				
 				readAT.existingNewTweetsCount2 = newTweetsCount;
 				if(readAT.listname){
@@ -440,7 +440,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 		nextDiv.setAttribute("class", "more round");
 		nextDiv.innerHTML = bundle.getFormattedString("showNextTweets", [readAT.numOfTweetsShowingAtOneTime]); 
 		readAT.more.parentNode.appendChild(nextDiv);
-		readAT.more.parentNode.removeChild(readAT.more);
+		readAT.removeElem(readAT.more);
 		//nextDiv.addEventListener("click", readAT.showNextTweets, false);
 		doc.addEventListener('scroll', readAT.showNextTweets, false);
 	}
@@ -462,7 +462,7 @@ start2 : function(failed, pageCount, newLis, newTweetsCount){
 finish : function(){
     var doc = readAT.getDoc();
 	var processingDiv = doc.getElementById("RAT_processing");
-	processingDiv.parentNode.removeChild(processingDiv);
+	readAT.removeElem(processingDiv);
 
 	readAT.setHTMLChange(doc);
 
@@ -498,7 +498,7 @@ setHTMLChange : function(doc){
 	if(readAT.listname){
 		moveToUnread.setAttribute("style", "display: block; margin: 16px 0 5px; text-align: right; font-size: 1.2em;");
         var timeline = readAT.getTimeline();
-        timeline.parentNode.insertBefore(moveToUnread, timeline);
+        readAT.insertBefore(moveToUnread, timeline);
 //		var heading = doc.getElementById("timeline_heading");
 //		moveToUnread.setAttribute("style", "display: block; margin: 0px 0px 2px; text-align: right; font-size: 1.2em;");
 //		heading.appendChild(moveToUnread);
@@ -506,13 +506,13 @@ setHTMLChange : function(doc){
 	else{
 		var heading = doc.getElementById("heading");
 		moveToUnread.setAttribute("style", "display: block; margin: 5px 0px; text-align: right; font-size: 1.2em;");
-		heading.parentNode.insertBefore(moveToUnread, heading.nextSibling);
+		readAT.insertBefore(moveToUnread, heading.nextSibling);
 	}
 /*
         var heading = doc.getElementById("heading");
         heading.style.margin = "0 0 10px";
         moveToUnread.setAttribute("style", "display: block; margin: 5px 0px; text-align: right; font-size: 1.2em;");
-        heading.parentNode.insertBefore(moveToUnread, heading.nextSibling);
+        readAT.insertBefore(moveToUnread, heading.nextSibling);
 */	
 	var new_results_notification = doc.getElementById("new_results_notification");
 	new_results_notification.innerHTML = '<div style="display:none">'+new_results_notification.innerHTML+'</div>';
@@ -525,7 +525,7 @@ removeHTMLChange : function(doc){
   	var RAT_moveToUnreadTweets = doc.getElementById("RAT_moveToUnreadTweets");
 	if(!RAT_moveToUnreadTweets) return; 
 
-	RAT_moveToUnreadTweets.parentNode.removeChild(RAT_moveToUnreadTweets);
+	readAT.removeElem(RAT_moveToUnreadTweets);
 
 	var new_results_notification = doc.getElementById("new_results_notification");
 	new_results_notification.firstChild.style.display ="block";
@@ -699,7 +699,7 @@ showNextTweets : function(){
 	if(doc.getElementById("RAT_separator").getAttribute("class").indexOf(" RAT_buffered")==-1) readAT.separatorHidden = false;
 	if(finished || !li.nextSibling){
 		nextDiv.parentNode.appendChild(readAT.more);
-		nextDiv.parentNode.removeChild(nextDiv);
+		readAT.removeElem(nextDiv);
 	}
 	else{
 		readAT.lastShownStatus = li;
@@ -1402,6 +1402,12 @@ getDoc : function () {
 },
 getTimeline: function () {
     return readAT._timeline ? readAT._timeline : readAT.getDoc().getElementById("timeline");
+},
+insertBefore : function (node, elem) {
+    elem.parentNode.insertBefore(node, elem);
+},
+removeElem : function (elem) {
+    elem.parentNode.removeChild(elem);
 },
 isReplie : function(aElm){
     var entryContent = aElm.getElementsByClassName("entry-content");
