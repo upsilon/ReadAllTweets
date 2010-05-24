@@ -314,43 +314,34 @@ start : function(doc){
 	readAT.newLastReply = readAT.getLastReply();
 	readAT.newLastDM = readAT.getLastDM();
 
-	var newTweetsCount = 0;
+	readAT.existingNewTweetsCount2 = 0;
+    for (var i = 0; i < lis.length; i++) {
+        if (readAT.getStatusId(lis[i]) <= readAT.lastStatus) {
+            readAT.start2(false, 2, null, 0);
+            return;
+        }
+        readAT.existingNewTweetsCount2++;
+    }
 
-//	GM_log("0, "+readAT.getTime());
-	var failed = false;
-	while(true){
-		var status = readAT.getStatusId(lis[newTweetsCount]);
-		
-		if(status <= readAT.lastStatus) break;
-		else{
-			newTweetsCount++;
-			if(!lis[newTweetsCount]){
-				readAT.more = doc.getElementById("more");
-				if(readAT.more) var uri = readAT.more.href;
-				if(!uri){
-					failed = true;
-					break;
-				}
-				
-				readAT.moreParent =readAT.more.parentNode; 
-				readAT.removeElem(readAT.more);
-				
-				readAT.existingNewTweetsCount2 = newTweetsCount;
-				if(readAT.listname){
-					var pageKind = "list_show";
-				}
-				else{
-					var pageKind = "home";
-				}
+    readAT.more = doc.getElementById("more");
+    var uri = null;
+    if (readAT.more) uri = readAT.more.href;
+    if (!uri) {
+       readAT.start2(true, 2, null, 0);
+       return;
+    }
 
-				readAT.getStatusesInit(uri, "more", readAT.lastStatus, pageKind, readAT.start2);
+    readAT.moreParent = readAT.more.parentNode;
+    readAT.removeNode(readAT.more);
 
-				return;
-			}
-		}
+	if(readAT.listname){
+		var pageKind = "list_show";
 	}
-	readAT.existingNewTweetsCount2 = newTweetsCount;
-	readAT.start2(failed, 2, null, 0);
+	else{
+		var pageKind = "home";
+	}
+
+	readAT.getStatusesInit(uri, "more", readAT.lastStatus, pageKind, readAT.start2);
 },
 //	GM_log("1, "+readAT.getTime());
 start2 : function(failed, pageCount, newLis, newTweetsCount){
@@ -795,16 +786,13 @@ updateStatuses : function(target){
 		return;		
 	}
 	
-	var j=newTweetsCount-1;
-	while(true){
+	for (var j = newTweetsCount - 1; j >= 0; j--) {
 		if(newLis[j]){
 			if(readAT.includeClass(newLis[j], "last-on-refresh")){
 				readAT.removeClass(newLis[j], "last-on-refresh");
 				break;
 			}
 		}
-		else break
-		j--;
 	}
 	readAT.showNewStauses2(false, null, newLis, newTweetsCount);
 },
@@ -910,13 +898,13 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 //			Application.console.log(readAT.newTweetsCount);
 //			Application.console.log(readAT.newLis[readAT.newTweetsCount].innerHTML)
 
-			while(true){
+            for (var i = newTweetsCount; i < newLis.length; i++) {
 //				alert(readAT.newTweetsCount + " \n" + readAT.newLis[readAT.newTweetsCount].innerHTML)
-				var status = readAT.getStatusId(newLis[newTweetsCount]);
+				var status = readAT.getStatusId(newLis[i]);
 				//status が適切に取得できなかった場合
-//				alert(newLis[newTweetsCount].innerHTML)
+//				alert(newLis[i].innerHTML)
 				if(!status){
-					Application.console.log(newTweetsCount)
+					Application.console.log(i)
 
                     readAT.changeLinkTargetAll(newLis);
                     returnFunc(true, pageCount + 1, newLis, newTweetsCount);
@@ -924,33 +912,27 @@ getStatuses : function(uri, moreId, lastStatus, pageKind, returnFunc, newLis, ne
 				}
 				
 				if(status <= lastStatus){
-					break;
+                    readAT.changeLinkTargetAll(newLis);
+                    returnFunc(false, pageCount + 1, newLis, newTweetsCount);
+                    return;
 				}
-				else{
-					newTweetsCount++;
-					if(!newLis[newTweetsCount]){
-						var span = doc.createElement("span");
-						var re = new RegExp('<a [^>]*id="'+moreId+'"[^>]*>[^<]*<\/a>');
-						span.innerHTML = res.match(re);
-						
-						if(!span.innerHTML){
-                            readAT.changeLinkTargetAll(newLis);
-                            returnFunc(false, pageCount + 1, newLis, newTweetsCount);
-							return;
-						}
-		
-						var nextUri = span.firstChild.href;
-						
-						readAT.getStatuses(nextUri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, false);
-						return;
-					}
-				}
-			}
-			//Application.console.log("status="+status);
 
-            readAT.changeLinkTargetAll(newLis);
-            returnFunc(false, pageCount + 1, newLis, newTweetsCount);
-			return;
+                newTweetsCount++;
+            }
+
+			var span = doc.createElement("span");
+			var re = new RegExp('<a [^>]*id="'+moreId+'"[^>]*>[^<]*<\/a>');
+			span.innerHTML = res.match(re);
+
+			if(!span.innerHTML){
+                readAT.changeLinkTargetAll(newLis);
+                returnFunc(false, pageCount + 1, newLis, newTweetsCount);
+				return;
+			}
+
+			var nextUri = span.firstChild.href;
+
+			readAT.getStatuses(nextUri, moreId, lastStatus, pageKind, returnFunc, newLis, newTweetsCount, false);
 	     }
 	     else{
            if(failedCount<2){
