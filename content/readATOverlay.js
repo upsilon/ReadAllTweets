@@ -339,7 +339,7 @@ start : function(doc){
     }
 
     readAT.moreParent = readAT.more.parentNode;
-    readAT.removeNode(readAT.more);
+    readAT.removeElem(readAT.more);
 
 	if(readAT.listname){
 		var pageKind = "list_show";
